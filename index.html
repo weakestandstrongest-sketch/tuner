@@ -227,9 +227,12 @@ input[type=range]::-moz-range-thumb{width:24px;height:24px;border:0;border-radiu
 .embed iframe{display:block;width:100%;height:100%;border:0;background:#000}
 body.embedded .app{display:none}
  /* launch animation: the icon assembles itself, then the app fades in */
-#splash{position:fixed;inset:0;z-index:100;background:#000;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:opacity .38s ease}
+#splash{position:fixed;inset:0;z-index:100;background:#000;transform:translateZ(0);display:flex;flex-direction:column;align-items:center;justify-content:center;transition:opacity .38s ease}
 #splash.out{opacity:0;pointer-events:none}
 #splash.gone{display:none}
+/* until the splash lets go, keep the app itself invisible: on iOS the tab bar's backdrop-filter layer
+   can be composited above the splash for the first frames */
+html:not(.ready) .app,html:not(.ready) .tabbar,html:not(.ready) .embed{visibility:hidden}
 /* black cover put up when the app goes to the background, so the snapshot iOS shows at the next launch is black, not the tuner */
 #cover{position:fixed;inset:0;z-index:99;background:#000;display:none;opacity:1;transition:opacity .25s ease}
 #cover.on{display:block}
@@ -282,10 +285,15 @@ body.embedded .app{display:none}
   const el = document.getElementById('splash');
   let skip = false;
   try { skip = sessionStorage.getItem('tm-skip-splash') === '1'; sessionStorage.removeItem('tm-skip-splash'); } catch (e) {}
-  if (skip) { el.classList.add('gone'); window.splashDone = true; return; }
+  const ready = () => {
+    window.splashDone = true;
+    document.documentElement.classList.add('ready');
+    window.dispatchEvent(new Event('splashdone'));
+  };
+  if (skip) { el.classList.add('gone'); ready(); return; }
   const done = () => {
     if (el.classList.contains('out')) return;
-    window.splashDone = true;
+    ready();
     el.classList.add('out');
     setTimeout(() => el.classList.add('gone'), 400);
   };
@@ -489,15 +497,15 @@ body.embedded .app{display:none}
     <li><button data-tab="just"><svg viewBox="0 0 24 24"><path d="M8 2v7a4 4 0 0 0 8 0V2"/><path d="M12 13v9"/><path d="M9 22h6"/></svg>純正律</button></li>
   </ul>
 </nav>
-<div class="embed" data-page="chords"><iframe data-src="chords/index.html?v=20261028113850" title="Chord Wheel"></iframe></div>
-<div class="embed" data-page="just"><iframe data-src="just/index.html?v=20261028113850" title="コード名検索 × 純正律"></iframe></div>
+<div class="embed" data-page="chords"><iframe data-src="chords/index.html?v=20261028114115" title="Chord Wheel"></iframe></div>
+<div class="embed" data-page="just"><iframe data-src="just/index.html?v=20261028114115" title="コード名検索 × 純正律"></iframe></div>
 <div class="toast" id="toast"></div>
 
 <script>
 (() => {
 'use strict';
 // Bumped by tools/bump-version.sh on every release; must match version.json.
-const APP_VERSION = '20261028113850';
+const APP_VERSION = '20261028114115';
 // GitHub Pages lets browsers reuse files for 10 minutes and home-screen apps keep them longer,
 // so ask for version.json uncached and, if a newer release is out, reopen under a fresh URL.
 async function checkForUpdate() {
@@ -508,9 +516,13 @@ async function checkForUpdate() {
     const key = 'tm-update-tried-' + v;
     if (sessionStorage.getItem(key)) return; // the CDN may still be catching up; don't loop
     sessionStorage.setItem(key, '1');
-    try { if (window.splashDone) sessionStorage.setItem('tm-skip-splash', '1'); } catch (e) {}
-    document.getElementById('cover').classList.add('on'); // black, not the old screen, until the new release paints
-    location.replace(location.pathname + '?v=' + v + location.hash);
+    const go = () => {
+      try { sessionStorage.setItem('tm-skip-splash', '1'); } catch (e) {}
+      document.getElementById('cover').classList.add('on'); // black, not the old screen, until the new release paints
+      location.replace(location.pathname + '?v=' + v + location.hash);
+    };
+    // never cut the launch animation short: switch to the new release once it has played
+    if (window.splashDone) go(); else window.addEventListener('splashdone', () => setTimeout(go, 0), { once: true });
   } catch (e) {}
 }
 checkForUpdate();
