@@ -93,21 +93,15 @@ body.ymode .topbar{display:none}
 .ydial{position:relative;width:100%;max-width:400px;margin:0 auto;aspect-ratio:1;touch-action:none;container-type:inline-size}
 .ybase{position:absolute;inset:0;border-radius:50%;background:var(--y-base);box-shadow:inset 0 0 0 1px #262626,0 1px 0 #2b2b2b}
 .yblack{position:absolute;inset:16.3%;border-radius:50%;background:#000}
-.disc{position:absolute;inset:23.4%;border-radius:50%;overflow:hidden;background:var(--y-disc);color:#1b1b1b;display:flex;flex-direction:column;font-family:var(--din);font-weight:700}
-.disc .top{height:65.6%;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding-bottom:2.4cqw}
-.disc .sigrow{position:relative;width:76%;display:flex;align-items:baseline;justify-content:center;gap:4.5cqw;padding:0 0 1.2cqw 2cqw;border-bottom:1px solid #8e8e8e}
-.disc .sigrow::before,.disc .sigrow::after{content:"";position:absolute;bottom:-.65cqw;width:1.2cqw;height:1.2cqw;border-radius:50%;background:#8e8e8e}
-.disc .sigrow::before{left:-.4cqw}.disc .sigrow::after{right:-.4cqw}
-.disc .lbl{font-size:3.7cqw;color:#8a8a8a;line-height:1}
-.disc .sig{font-size:11cqw;line-height:.85}
-.disc .tempo-wrap{position:relative;padding:3.2cqw 0 0 2cqw}
-.disc .tempo-wrap .lbl{position:absolute;right:.4cqw;top:2.2cqw}
-.disc .tempo{font-size:18cqw;line-height:.8;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
-.disc .tempo span{font-size:12.5cqw;color:#7a7a7a}
-.disc .go{flex:1;background:var(--y-purple);color:var(--y-lav);font-family:var(--din);font-weight:700;font-size:9cqw;line-height:1;
-  display:flex;align-items:center;justify-content:center;padding-bottom:4cqw;transition:background .15s}
-.disc .go:active,.disc .go.on{background:var(--y-purple-on)}
-.lamp{position:absolute;left:79.5%;top:79.2%;width:12.7%;aspect-ratio:1;transform:translate(-50%,-50%);border-radius:50%;
+.disc{position:absolute;inset:23.4%;border-radius:50%;overflow:hidden;background:var(--y-disc)}
+.disc svg{position:absolute;inset:0;width:100%;height:100%;display:block}
+.disc .dn{font-family:var(--din);font-weight:700;fill:#1b1b1b}
+.disc .dl{font-family:var(--din);font-weight:700;font-size:25px;fill:#8a8a8a}
+.disc .tempo-hit{position:absolute;left:0;right:0;top:0;height:65.6%}
+.disc .go{position:absolute;left:0;right:0;bottom:0;height:34.4%}
+#go-bg{fill:var(--y-purple);transition:fill .15s}
+.disc .go:active~svg #go-bg,.disc.on #go-bg{fill:var(--y-purple-on)}
+.lamp{position:absolute;left:79.3%;top:79.3%;width:12.7%;aspect-ratio:1;transform:translate(-50%,-50%);border-radius:50%;cursor:grab;touch-action:none;
   background:#111;border:1.5cqw solid #2b2b2b;transition:background .05s,box-shadow .05s,border-color .05s}
 .lamp.on{background:var(--y-accent);border-color:#3a2a55;box-shadow:0 0 5cqw #7d4fd1aa}
 .lamp.on.acc{background:#d9c7ff;box-shadow:0 0 7cqw #b28cffcc}
@@ -300,11 +294,18 @@ input[type=range]::-moz-range-thumb{width:24px;height:24px;border:0;border-radiu
       <div class="ybase"></div>
       <div class="yblack"></div>
       <div class="disc" id="mdisc">
-        <div class="top">
-          <div class="sigrow"><span class="lbl">BEAT</span><span class="sig" id="sig">4/4</span></div>
-          <div class="tempo-wrap"><span class="lbl">TEMPO</span><div class="tempo" id="tempo-num">100<span>.00</span></div></div>
-        </div>
-        <button class="go" id="go">START</button>
+        <button class="tempo-hit" id="tempo-num" aria-label="テンポを入力"></button>
+        <button class="go" id="go" aria-label="スタート / ストップ"></button>
+        <svg viewBox="0 0 442 442" aria-hidden="true" style="pointer-events:none">
+          <rect y="290" width="442" height="152" id="go-bg"/>
+          <text x="96" y="98" class="dl">BEAT</text>
+          <text x="197" y="98" class="dn" font-size="80" id="sig">4/4</text>
+          <line x1="56" y1="122" x2="386" y2="122" stroke="#8e8e8e" stroke-width="2"/>
+          <circle cx="54" cy="122" r="3.5" fill="#8e8e8e"/><circle cx="388" cy="122" r="3.5" fill="#8e8e8e"/>
+          <text x="298" y="177" class="dl">TEMPO</text>
+          <text x="370" y="255" text-anchor="end" class="dn"><tspan font-size="141" id="t-int">100</tspan><tspan font-size="99" fill="#7a7a7a" id="t-dec">.00</tspan></text>
+          <text x="221" y="385" text-anchor="middle" class="dn" font-size="70" style="fill:var(--y-lav)" id="go-txt">START</text>
+        </svg>
       </div>
       <div class="lamp" id="lamp"></div>
     </div>
@@ -394,7 +395,7 @@ const $$ = (s, r = document) => [...r.querySelectorAll(s)];
 // ---------- settings ----------
 const DEFAULTS = {
   a4: 440, temperament: 'equal', key: 0, transpose: 0, naming: 'en', tolerance: 5, sens: 5,
-  bpm: 100, beats: 4, unit: 4, sub: 0, sound: 'beep', mVol: 0.8, mPitch: 0, accents: [3, 1, 1, 1],
+  bpm: 100, beats: 4, unit: 4, sub: 0, sound: 'beep', mVol: 0.8, mPitch: 0, knob: 45, accents: [3, 1, 1, 1],
   trOn: false, trBars: 4, trInc: 2, trMax: 160,
   dNote: 9, dOct: 4, dWave: 'sine', dVol: 0.5, dFifth: false,
 };
@@ -822,8 +823,8 @@ function stopMetro() {
 }
 function toggleMetro() { M.playing ? stopMetro() : startMetro(); }
 function refreshMetroState() {
-  $('#go').textContent = M.playing ? 'STOP' : 'START';
-  $('#go').classList.toggle('on', M.playing);
+  $('#go-txt').textContent = M.playing ? 'STOP' : 'START';
+  $('#mdisc').classList.toggle('on', M.playing);
   $('#mini-metro').classList.toggle('on', M.playing);
   $('#mini-icon').innerHTML = M.playing ? '<rect x="2" y="2" width="8" height="8" rx="1" fill="#fff"/>' : '<path d="M2 1l9 5-9 5z" fill="#fff"/>';
 }
@@ -834,7 +835,7 @@ function renderRhythm() {
 function setBpm(v) {
   S.bpm = Math.round(Math.max(30, Math.min(300, v)) * 100) / 100;
   const [i, d] = S.bpm.toFixed(2).split('.');
-  $('#tempo-num').innerHTML = `${i}<span>.${d}</span>`;
+  $('#t-int').textContent = i; $('#t-dec').textContent = '.' + d;
   $('#mini-bpm').textContent = Number.isInteger(S.bpm) ? S.bpm : S.bpm.toFixed(2);
   save();
 }
@@ -863,20 +864,27 @@ function metroFrame() {
 
 // dial drag
 (() => {
-  const dial = $('#mdial'); let last = null, acc = 0;
+  // the lamp doubles as a jog knob that travels round the dial: 2° per bpm
+  const dial = $('#mdial'), knob = $('#lamp'); let last = null, acc = 0;
+  const placeKnob = () => {
+    const a = S.knob * Math.PI / 180;
+    knob.style.left = (50 + 41.5 * Math.cos(a)) + '%'; knob.style.top = (50 + 41.5 * Math.sin(a)) + '%';
+  };
+  placeKnob();
   const angle = e => { const r = dial.getBoundingClientRect(); return Math.atan2(e.clientY - r.top - r.height / 2, e.clientX - r.left - r.width / 2) * 180 / Math.PI; };
   dial.addEventListener('pointerdown', e => {
     if (e.target.closest('.disc')) return;
-    last = angle(e); acc = 0; dial.setPointerCapture(e.pointerId);
+    last = angle(e); acc = 0; dial.setPointerCapture(e.pointerId); knob.style.cursor = 'grabbing';
   });
   dial.addEventListener('pointermove', e => {
     if (last === null) return;
     const a = angle(e); let d = a - last; if (d > 180) d -= 360; if (d < -180) d += 360;
-    last = a; acc += d / 6;
+    last = a; acc += d / 2;
+    S.knob = (S.knob + d + 360) % 360; placeKnob();
     const step = Math.trunc(acc);
     if (step) { acc -= step; setBpm(Math.round(S.bpm) + step); }
   });
-  const end = () => { last = null; };
+  const end = () => { if (last !== null) save(); last = null; knob.style.cursor = ''; };
   dial.addEventListener('pointerup', end); dial.addEventListener('pointercancel', end);
 })();
 
