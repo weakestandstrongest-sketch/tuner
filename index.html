@@ -58,6 +58,11 @@ h2{font-size:13px;font-weight:600;color:var(--muted);margin:6px 0 0;letter-spaci
 .meter .tick{position:absolute;top:30px;font-size:10px;color:var(--muted);transform:translateX(-50%)}
 .meter .needle{position:absolute;top:6px;width:4px;height:32px;margin-left:-2px;border-radius:2px;background:#fff;left:50%;
   box-shadow:0 0 8px #fff8;transition:left .08s linear,opacity .2s}
+.level{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--muted);margin:-4px 6px 0}
+.level span:last-child{min-width:44px;text-align:right;font-variant-numeric:tabular-nums}
+.lbar{flex:1;height:6px;border-radius:3px;background:var(--surface2);position:relative;overflow:hidden}
+.lfill{position:absolute;inset:0 auto 0 0;width:0;background:var(--blue)}
+.lth{position:absolute;top:0;bottom:0;width:2px;background:var(--orange)}
 .readout{display:grid;grid-template-columns:auto 1fr auto;align-items:end;gap:12px;padding:0 4px}
 .note{font-size:76px;font-weight:700;line-height:.9;color:var(--green);min-width:110px}
 .note sub{font-size:28px;vertical-align:baseline;margin-left:2px}
@@ -171,6 +176,7 @@ input[type=range]{flex:1;accent-color:var(--purple);height:30px}
       <span class="tick" style="left:0%">-50</span><span class="tick" style="left:25%">-25</span>
       <span class="tick" style="left:50%">0</span><span class="tick" style="left:75%">+25</span><span class="tick" style="left:100%">+50</span>
     </div>
+    <div class="level"><span>入力</span><div class="lbar"><div class="lfill" id="lfill"></div><div class="lth" id="lth"></div></div><span id="ldb">—</span></div>
     <div class="readout">
       <div class="note off" id="note">–</div>
       <div class="cents"><span id="cents">±0.0</span><small>cents</small></div>
@@ -324,16 +330,18 @@ async function keepAwake(on) {
     } else if (!on && wakeLock && !tuner.on && !M.playing && !drone) { wakeLock.release(); wakeLock = null; }
   } catch (e) {}
 }
+document.addEventListener('pointerdown', () => { if (ctx && ctx.state !== 'running') ctx.resume(); }, true);
 document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible' && ctx && ctx.state !== 'running') ctx.resume();
   if (document.visibilityState === 'visible' && (tuner.on || M.playing || drone)) keepAwake(true);
 });
-function toast(msg) {
+function toast(msg, ms = 2200) {
   const t = $('#toast'); t.textContent = msg; t.classList.add('show');
-  clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.remove('show'), 2200);
+  clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.remove('show'), ms);
 }
 
 // ---------- pitch detection (YIN) ----------
-const tuner = { on: false, analyser: null, buf: null, yin: null, hist: [], freqs: [], lastValid: 0,
+const tuner = { on: false, level: 0, analyser: null, buf: null, yin: null, hist: [], freqs: [], lastValid: 0,
   cents: 0, note: null, susNote: null, susTime: 0, inTime: 0, lastT: 0 };
 
 function detectPitch(b, sr) {
@@ -341,8 +349,8 @@ function detectPitch(b, sr) {
   let rms = 0;
   for (let i = 0; i < N; i++) rms += b[i] * b[i];
   rms = Math.sqrt(rms / N);
-  const minRms = 0.002 * Math.pow(1.6, 10 - S.sens);
-  if (rms < minRms) return -1;
+  tuner.level = rms;
+  if (rms < minRms()) return -1;
   const tauMin = Math.floor(sr / 2200), tauMax = Math.min(Math.floor(sr / 45), N >> 1);
   const W = N - tauMax;
   const d = tuner.yin || (tuner.yin = new Float32Array(tauMax + 1));
@@ -367,6 +375,9 @@ function detectPitch(b, sr) {
   return sr / bt;
 }
 
+// sens 1..10 → threshold ≈ 0.024 .. 0.0004 (5 ≈ 0.003)
+function minRms() { return 0.0004 * Math.pow(1.57, 10 - S.sens); }
+
 function analyze(f) {
   const m = 69 + 12 * Math.log2(f / S.a4);
   let best = null;
@@ -378,22 +389,29 @@ function analyze(f) {
 }
 
 async function startTuner() {
-  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-    toast('このブラウザではマイクが使えません（HTTPS が必要です）'); return;
+  if (!window.isSecureContext || !navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    toast('マイクは HTTPS のページでのみ使えます（現在: ' + location.protocol + '//' + location.host + '）', 6000); return;
   }
+  const c = ac(); // create/resume inside the tap (required on iOS)
   try {
-    const c = ac();
     const stream = await navigator.mediaDevices.getUserMedia({
       audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false } });
+    // iOS may suspend/interrupt the context while switching to recording mode
+    if (c.state !== 'running') await c.resume().catch(() => {});
     const src = c.createMediaStreamSource(stream);
     const an = c.createAnalyser(); an.fftSize = 2048;
-    src.connect(an);
+    // Safari only processes nodes that eventually reach the destination
+    const mute = c.createGain(); mute.gain.value = 0;
+    src.connect(an); an.connect(mute); mute.connect(c.destination);
+    tuner.stream = stream; tuner.src = src;
     tuner.analyser = an; tuner.buf = new Float32Array(an.fftSize); tuner.yin = null;
     tuner.on = true;
     $('#start-overlay').style.display = 'none';
     keepAwake(true);
   } catch (e) {
-    toast('マイクへのアクセスが許可されませんでした');
+    const denied = e && (e.name === 'NotAllowedError' || e.name === 'SecurityError');
+    toast(denied ? 'マイクが許可されていません。iPhone は「設定 > アプリ > Safari > マイク」で許可してください'
+      : 'マイクを開始できませんでした（' + (e && e.name || e) + '）', 7000);
   }
 }
 
@@ -455,6 +473,11 @@ function tunerFrame(now) {
   tuner.lastT = now;
   tuner.analyser.getFloatTimeDomainData(tuner.buf);
   const f = detectPitch(tuner.buf, ctx.sampleRate);
+  const pos = r => Math.max(0, Math.min(100, (20 * Math.log10(r + 1e-9) + 70) / 70 * 100));
+  $('#lfill').style.width = pos(tuner.level) + '%';
+  $('#lfill').style.background = tuner.level >= minRms() ? 'var(--green)' : 'var(--blue)';
+  $('#lth').style.left = pos(minRms()) + '%';
+  $('#ldb').textContent = Math.round(20 * Math.log10(tuner.level + 1e-9)) + ' dB';
   const silent = f <= 0 || f > 4200;
   if (!silent) {
     tuner.freqs.push(f); if (tuner.freqs.length > 5) tuner.freqs.shift();
