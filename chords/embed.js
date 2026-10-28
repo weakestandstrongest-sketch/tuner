@@ -1,20 +1,25 @@
-// Shown inside the tuner app: shared SVG paint servers for the restyled wheel (see embed.css).
+// Shown inside the tuner app: a watch-style bezel behind the wheel and a glow filter (see embed.css).
 (() => {
   const NS = 'http://www.w3.org/2000/svg';
-  const svg = document.createElementNS(NS, 'svg');
-  svg.setAttribute('aria-hidden', 'true');
-  svg.style.cssText = 'position:absolute;width:0;height:0;overflow:hidden';
-  // radial gradients centred on the wheel (viewBox is centred on 0,0): each ring brightens outward
-  const ring = (id, r0, r1, c0, c1) =>
-    `<radialGradient id="${id}" gradientUnits="userSpaceOnUse" cx="0" cy="0" r="200">
-       <stop offset="${r0 / 200}" stop-color="${c0}"/><stop offset="${r1 / 200}" stop-color="${c1}"/></radialGradient>`;
-  svg.innerHTML = `<defs>
-    ${ring('g-major', 148, 198, '#0c6b51', '#27d6a2')}
-    ${ring('g-minor', 100, 148, '#23428f', '#5f90ff')}
-    ${ring('g-dim', 60, 100, '#7a2c22', '#ff7d66')}
-    <radialGradient id="g-hub" cx="50%" cy="35%" r="70%"><stop offset="0" stop-color="#2a2a31"/><stop offset="1" stop-color="#0a0a0c"/></radialGradient>
-    <filter id="w-glow" x="-30%" y="-30%" width="160%" height="160%">
-      <feGaussianBlur stdDeviation="4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
-    </filter></defs>`;
-  document.body.prepend(svg);
+  const defs = document.createElementNS(NS, 'svg');
+  defs.setAttribute('aria-hidden', 'true');
+  defs.style.cssText = 'position:absolute;width:0;height:0;overflow:hidden';
+  defs.innerHTML = `<defs><filter id="w-glow" x="-30%" y="-30%" width="160%" height="160%">
+    <feGaussianBlur stdDeviation="3.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>`;
+  document.body.prepend(defs);
+
+  // 60 ticks just outside the outer ring (wheel viewBox is -205..205, outer ring ends at r=198)
+  const wrap = document.querySelector('.wheel-wrap');
+  if (!wrap) return;
+  const bezel = document.createElementNS(NS, 'svg');
+  bezel.setAttribute('viewBox', '-205 -205 410 410');
+  bezel.setAttribute('aria-hidden', 'true');
+  bezel.classList.add('bezel');
+  let h = '';
+  for (let i = 0; i < 60; i++) {
+    const a = i * 6 * Math.PI / 180, major = i % 5 === 0, r0 = major ? 199.5 : 201, r1 = 204.5;
+    h += `<line x1="${(r0 * Math.sin(a)).toFixed(2)}" y1="${(-r0 * Math.cos(a)).toFixed(2)}" x2="${(r1 * Math.sin(a)).toFixed(2)}" y2="${(-r1 * Math.cos(a)).toFixed(2)}" class="${major ? 'mj' : ''}"/>`;
+  }
+  bezel.innerHTML = h;
+  wrap.prepend(bezel);
 })();
