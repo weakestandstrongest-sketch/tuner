@@ -8,3 +8,12 @@
 - **設定**: A4 = 415–466 Hz、平均律／純正律／ピタゴラス音律、主音、移調（C・B♭・E♭・F・A・G 管）、音名表記
 
 マイクの利用には HTTPS が必要です（GitHub Pages などで公開してください）。
+
+## 統合したアプリ
+- **コード**（`chords/`）：五度圏のコードホイール。元は `music-code` リポジトリ。
+- **純正律**（`just/`）：構成音からコード名を判定し、純正律のずれを表示。元は `code2` リポジトリ。
+
+どちらもタブの中に表示し、`embed.css` で配色と下のタブバー用の余白を合わせています。
+
+## クレジット
+ピアノ音源：Salamander Grand Piano（Alexander Holm, CC BY 3.0）。`chords/samples/piano/LICENSE.txt` を参照。

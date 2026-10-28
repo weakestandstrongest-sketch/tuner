@@ -1,0 +1,3 @@
+/* Shown inside the tuner app: match its black ground and leave room for the floating tab bar. */
+:root { --bg: #000000; --surface: #121215; --surface-2: #1a1a1f; --line: #2a2a31; }
+body { padding-bottom: 120px; }
