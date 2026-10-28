@@ -1,10 +1,12 @@
-// Shown inside the tuner app: a watch-style bezel behind the wheel and a glow filter (see embed.css).
+// Shown inside the tuner app: a tick bezel behind the wheel (hidden by the current theme) and glow filters (see embed.css).
 (() => {
   const NS = 'http://www.w3.org/2000/svg';
   const defs = document.createElementNS(NS, 'svg');
   defs.setAttribute('aria-hidden', 'true');
   defs.style.cssText = 'position:absolute;width:0;height:0;overflow:hidden';
-  defs.innerHTML = `<defs><filter id="w-glow" x="-30%" y="-30%" width="160%" height="160%">
+  defs.innerHTML = `<defs><filter id="neon" x="-40%" y="-40%" width="180%" height="180%">
+    <feGaussianBlur stdDeviation="3" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    <filter id="w-glow" x="-30%" y="-30%" width="160%" height="160%">
     <feGaussianBlur stdDeviation="3.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>`;
   document.body.prepend(defs);
 
