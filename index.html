@@ -9,7 +9,7 @@
 <title>Tuner Metronome</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Roboto+Condensed:wght@700&display=swap" rel="stylesheet">
 <style>
 :root{
   /* Jam dark palette */
@@ -20,8 +20,10 @@
   /* tuner */
   --te-green:#3bd45a; --te-blue:#9fd3ee; --te-mint:#bfe7c6;
   /* metronome */
-  --y-purple:#6b2fe0; --y-purple-2:#4a1fa6; --y-disc:#f1f1f3;
+  --y-bg:#232323; --y-base:#1b1b1b; --y-btn:#2b2b2b; --y-disc:#c6c6c6;
+  --y-purple:#4a2276; --y-purple-on:#5b2c90; --y-lav:#cbc1dd; --y-accent:#7d4fd1;
   --cond:"Barlow Condensed","Arial Narrow",-apple-system,sans-serif;
+  --din:"DIN Condensed","DIN Alternate","Roboto Condensed","Arial Narrow",sans-serif;
   color-scheme:dark;
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -41,7 +43,7 @@ button{font:inherit;color:inherit;border:0;background:none;cursor:pointer;touch-
 .mini-metro{justify-self:end;display:flex;align-items:center;gap:8px;text-align:right}
 .mini-metro .t{font-size:10px;color:var(--label-3)}
 .mini-metro .bpm{display:block;font-family:var(--cond);font-size:18px;font-weight:700;color:var(--label);line-height:1}
-.mini-metro .play{width:30px;height:30px;border-radius:50%;background:var(--y-purple);display:grid;place-items:center;transition:transform .15s}
+.mini-metro .play{width:30px;height:30px;border-radius:50%;background:var(--y-accent);display:grid;place-items:center;transition:transform .15s}
 .mini-metro:active .play{transform:scale(.9)}
 .mini-metro.on .play{background:var(--danger)}
 .mini-metro.flash .play{box-shadow:0 0 0 3px var(--warning)}
@@ -58,25 +60,20 @@ h2{font-size:12px;font-weight:600;color:var(--label-3);margin:4px 2px -4px;lette
 .score .fill{position:absolute;inset:0 auto 0 0;width:0;background:linear-gradient(#4fe06c,#27b345);transition:width .15s}
 .score .pct{position:absolute;inset:0;display:grid;place-items:center;font-size:10px;color:#fff;font-weight:700;text-shadow:0 1px 2px #0008}
 .score span{font-variant-numeric:tabular-nums;min-width:52px}
-.dial-wrap{position:relative;width:100%;max-width:350px;margin:0 auto;aspect-ratio:1}
+.dial-wrap{position:relative;width:100%;max-width:350px;margin:4px auto 0;aspect-ratio:1}
 .dial-wrap svg{width:100%;height:100%;display:block;overflow:visible}
-.seg{stroke:#000;stroke-width:2.5;transition:fill .15s}
-.seg-label{fill:#9db3c2;font-size:13px;font-weight:700;text-anchor:middle;dominant-baseline:central;pointer-events:none;transition:fill .15s}
-.seg-label.on{fill:#062232}
-#face{transition:transform .1s linear}
-#needle-g{transition:transform .1s linear,opacity .25s}
+.wl,.wd{transition:fill .2s,opacity .4s}
+.wl{fill:#6a6a74;font-size:15px;font-weight:700;text-anchor:middle;dominant-baseline:central}
+.wl.on{fill:#fff}
+#wheel{transition:transform .4s cubic-bezier(.3,.9,.4,1)}
+#face,#needle-g{transition:transform .12s linear,opacity .25s}
+#face-glow,#marker,#needle-r{transition:fill .2s,opacity .25s}
 .start-overlay{position:absolute;inset:0;display:grid;place-items:center}
 .start-btn{background:var(--te-green);color:#04200c;font-weight:800;padding:14px 24px;border-radius:999px;font-size:15px;box-shadow:0 8px 30px #3bd45a55}
 .start-btn:active{transform:scale(.95)}
-.meter{position:relative;height:40px;margin:0 8px}
-.meter .track{position:absolute;left:0;right:0;top:16px;height:6px;border-radius:3px;
-  background:linear-gradient(90deg,#d3302a,#ff9d3a 32%,var(--te-green) 46%,var(--te-green) 54%,#ff9d3a 68%,#d3302a)}
-.meter .tick{position:absolute;top:27px;font-size:10px;color:var(--label-3);transform:translateX(-50%);font-variant-numeric:tabular-nums}
-.meter .needle{position:absolute;top:6px;width:3px;height:26px;margin-left:-1.5px;border-radius:2px;background:#fff;left:50%;
-  box-shadow:0 0 8px #fff9;transition:left .1s linear,opacity .2s}
-.level{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--label-3);margin:-6px 8px 0}
+.level{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--label-3);margin:0 8px}
 .level span:last-child{min-width:44px;text-align:right;font-variant-numeric:tabular-nums}
-.lbar{flex:1;height:5px;border-radius:3px;background:var(--surface-2);position:relative;overflow:hidden}
+.lbar{flex:1;height:4px;border-radius:2px;background:var(--surface-2);position:relative;overflow:hidden}
 .lfill{position:absolute;inset:0 auto 0 0;width:0;background:#4aa3ff}
 .lth{position:absolute;top:0;bottom:0;width:2px;background:var(--warning)}
 .readout{display:grid;grid-template-columns:auto 1fr auto;align-items:end;gap:12px;padding:0 4px}
@@ -90,56 +87,70 @@ h2{font-size:12px;font-weight:600;color:var(--label-3);margin:4px 2px -4px;lette
 canvas#hist{width:100%;height:90px;display:block;border-radius:14px;background:var(--surface);box-shadow:inset 0 0 0 .5px var(--separator)}
 
 /* ===== metronome (YAMAHA style) ===== */
-.mdial{position:relative;width:100%;max-width:350px;margin:6px auto 0;aspect-ratio:1;touch-action:none}
-.mdial .ring{position:absolute;inset:0;border-radius:50%;
-  background:radial-gradient(circle at 50% 50%,#0b0b0d 0 60%,#1d1d21 61%,#26262b 75%,#18181b 90%,#101012 100%);
-  box-shadow:inset 0 0 0 1px #2a2a30,inset 0 2px 6px #ffffff10,0 12px 40px #000}
-.mdial .ticks{position:absolute;inset:0}
-.mdial .ticks i{position:absolute;left:50%;top:2.5%;width:2px;height:4%;margin-left:-1px;background:#38383f;border-radius:1px;transform-origin:50% 1187.5%}
-.mdial .ticks i.major{background:#5d5d66;height:5.5%;transform-origin:50% 863.6%}
-.lamp{position:absolute;left:50%;top:9%;width:9%;aspect-ratio:1;margin-left:-4.5%;border-radius:50%;border:3px solid #3b3b42;transition:background .06s,border-color .06s,box-shadow .06s}
-.lamp.on{background:#fff;border-color:#fff;box-shadow:0 0 16px #fff}
-.lamp.on.acc{background:#b28cff;border-color:#b28cff;box-shadow:0 0 20px #8f5cff}
-.disc{position:absolute;inset:22%;border-radius:50%;overflow:hidden;background:var(--y-disc);color:#141416;display:flex;flex-direction:column;
-  box-shadow:0 0 0 6px #050506,0 14px 30px #000c}
-.disc .top{flex:1.3;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding-bottom:2px}
-.disc .sigrow{display:flex;align-items:baseline;gap:8px;padding:0 10px 2px;border-bottom:2px dotted #b9b9c0;font-family:var(--cond)}
-.disc .lbl{font-family:var(--cond);font-size:9px;font-weight:600;color:#8d8d95;letter-spacing:.12em}
-.disc .sig{font-size:30px;font-weight:700;line-height:1}
-.disc .tempo-wrap{position:relative;font-family:var(--cond)}
-.disc .tempo-wrap .lbl{position:absolute;right:2px;top:6px}
-.disc .tempo{font-size:66px;font-weight:700;line-height:1;font-variant-numeric:tabular-nums;letter-spacing:-.01em;padding-top:10px}
-.disc .tempo span{font-size:36px;color:#8d8d95}
-.disc .go{flex:1;background:var(--y-purple);color:#fff;font-family:var(--cond);font-size:30px;font-weight:700;letter-spacing:.04em;
-  display:flex;align-items:flex-start;justify-content:center;padding-top:7%}
-.disc .go.on{background:var(--y-purple-2)}
-.tname{text-align:center;font-family:var(--cond);font-size:14px;font-weight:600;letter-spacing:.2em;color:var(--label-3);margin-top:-4px}
-.ctrl{display:grid;grid-template-columns:1fr 1fr 1.4fr 1fr 1fr;gap:8px}
-.rbtn{height:52px;border-radius:26px;background:var(--surface-2);font-family:var(--cond);font-size:22px;font-weight:700;
-  box-shadow:inset 0 0 0 .5px var(--separator-strong);transition:transform .12s,background .12s}
-.rbtn:active{transform:scale(.92);background:var(--surface-3)}
-.rbtn.tap{background:var(--y-purple);letter-spacing:.12em}
-.beats{display:flex;gap:6px;justify-content:center;flex-wrap:wrap}
-.beat{width:36px;display:flex;flex-direction:column-reverse;gap:3px;padding:5px 5px 4px;border-radius:10px;background:var(--surface);transition:background .08s}
-.beat i{height:7px;border-radius:2px;background:var(--surface-3)}
-.beat i.f{background:var(--y-purple)}
-.beat.cur{background:var(--surface-3)}
-.beat.cur i.f{background:#b28cff}
-.beat .n{font-family:var(--cond);font-size:12px;color:var(--label-3);text-align:center;font-style:normal;font-weight:600}
-.ytabs{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none}
-.ytabs::-webkit-scrollbar{display:none}
-.ytab{flex:1 0 auto;height:40px;padding:0 16px;border-radius:20px;background:var(--surface-2);font-family:var(--cond);font-size:17px;font-weight:700;letter-spacing:.08em;color:var(--label-2)}
-.ytab.sel{background:var(--y-purple);color:#fff}
-.ypanel{display:none;flex-direction:column;gap:10px}
+body.ymode{background:var(--y-bg)}
+body.ymode .topbar{display:none}
+.y-title{text-align:center;font-family:var(--din);font-size:30px;font-weight:700;color:#d4d4d4;padding:16px 0 0;line-height:1}
+.ydial{position:relative;width:100%;max-width:400px;margin:0 auto;aspect-ratio:1;touch-action:none;container-type:inline-size}
+.ybase{position:absolute;inset:0;border-radius:50%;background:var(--y-base);box-shadow:inset 0 0 0 1px #262626,0 1px 0 #2b2b2b}
+.yblack{position:absolute;inset:16.3%;border-radius:50%;background:#000}
+.disc{position:absolute;inset:23.4%;border-radius:50%;overflow:hidden;background:var(--y-disc);color:#1b1b1b;display:flex;flex-direction:column;font-family:var(--din);font-weight:700}
+.disc .top{height:65.6%;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding-bottom:2.4cqw}
+.disc .sigrow{position:relative;width:76%;display:flex;align-items:baseline;justify-content:center;gap:4.5cqw;padding:0 0 1.2cqw 2cqw;border-bottom:1px solid #8e8e8e}
+.disc .sigrow::before,.disc .sigrow::after{content:"";position:absolute;bottom:-.65cqw;width:1.2cqw;height:1.2cqw;border-radius:50%;background:#8e8e8e}
+.disc .sigrow::before{left:-.4cqw}.disc .sigrow::after{right:-.4cqw}
+.disc .lbl{font-size:3.7cqw;color:#8a8a8a;line-height:1}
+.disc .sig{font-size:11cqw;line-height:.85}
+.disc .tempo-wrap{position:relative;padding:3.2cqw 0 0 2cqw}
+.disc .tempo-wrap .lbl{position:absolute;right:.4cqw;top:2.2cqw}
+.disc .tempo{font-size:18cqw;line-height:.8;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.disc .tempo span{font-size:12.5cqw;color:#7a7a7a}
+.disc .go{flex:1;background:var(--y-purple);color:var(--y-lav);font-family:var(--din);font-weight:700;font-size:9cqw;line-height:1;
+  display:flex;align-items:center;justify-content:center;padding-bottom:4cqw;transition:background .15s}
+.disc .go:active,.disc .go.on{background:var(--y-purple-on)}
+.lamp{position:absolute;left:79.5%;top:79.2%;width:12.7%;aspect-ratio:1;transform:translate(-50%,-50%);border-radius:50%;
+  background:#111;border:1.5cqw solid #2b2b2b;transition:background .05s,box-shadow .05s,border-color .05s}
+.lamp.on{background:var(--y-accent);border-color:#3a2a55;box-shadow:0 0 5cqw #7d4fd1aa}
+.lamp.on.acc{background:#d9c7ff;box-shadow:0 0 7cqw #b28cffcc}
+.ybtns{position:relative;width:100%;max-width:440px;margin:2% auto 0;aspect-ratio:830/300;container-type:inline-size}
+.yb{position:absolute;width:20.5%;aspect-ratio:1;border-radius:50%;background:var(--y-btn);color:#d8d8d8;font-family:var(--din);font-weight:700;font-size:7.2cqw;line-height:1;
+  display:grid;place-items:center;padding-top:.6cqw;box-shadow:0 1.4cqw 2cqw rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.05);transition:transform .1s,background .1s}
+.yb:active{transform:scale(.93);background:#353535}
+.yb.a{left:1%;top:0}.yb.b{left:26.4%;top:35%}.yb.c{left:53.1%;top:35%}.yb.d{left:78.5%;top:0}
+.yb.sym{font-family:-apple-system,"Helvetica Neue",sans-serif;font-weight:400;font-size:8cqw;padding:0 0 .8cqw}
+.ypick{display:grid;grid-template-columns:14.5% 1fr 14.5%;gap:5.5%;align-items:center;width:100%;max-width:440px;margin:2% auto 0;container-type:inline-size}
+.ypick .yb{position:static;width:100%;padding:0}
+.ypick .yb svg{width:42%;height:42%}
+.ypill{height:13cqw;border-radius:6.5cqw;background:#181818;box-shadow:inset 0 .6cqw 1.6cqw rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;gap:2.5cqw;
+  font-family:var(--din);font-weight:700;font-size:6cqw;color:#cfcfcf;padding-top:.5cqw;white-space:nowrap}
+.ypill small{font-family:-apple-system,"Hiragino Sans",sans-serif;font-size:3.6cqw;font-weight:600;color:#9a9a9a}
+.ynav{display:flex;justify-content:space-around;margin:10px 0 2px}
+.ynav button{display:flex;flex-direction:column;align-items:center;gap:5px;min-width:70px;color:#8c8c8c;font-size:11px;transition:color .15s}
+.ynav button.sel{color:var(--y-accent)}
+.ynav svg{width:32px;height:32px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+.ynav .sigicon{font-family:var(--din);font-weight:700;font-size:36px;line-height:32px;height:32px;padding-top:4px}
+.ypanel{display:none;flex-direction:column;gap:10px;background:var(--y-base);border-radius:20px;padding:14px;box-shadow:inset 0 0 0 1px #262626}
 .ypanel.sel{display:flex}
+.ypanel .card{background:transparent;box-shadow:none;padding:4px 2px}
+.ytap{width:52%;aspect-ratio:1;margin:6px auto;border-radius:50%;background:var(--y-btn);color:#d8d8d8;font-family:var(--din);font-weight:700;font-size:44px;padding-top:6px;
+  box-shadow:0 10px 18px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.05);transition:transform .08s,background .08s}
+.ytap:active{transform:scale(.95);background:var(--y-purple);color:var(--y-lav)}
+.beats{display:flex;gap:6px;justify-content:center;flex-wrap:wrap}
+.beat{width:36px;display:flex;flex-direction:column-reverse;gap:3px;padding:5px 5px 4px;border-radius:10px;background:var(--y-btn);transition:background .08s}
+.beat i{height:7px;border-radius:2px;background:#3a3a3a}
+.beat i.f{background:var(--y-accent)}
+.beat.cur{background:#3d3d3d}
+.beat.cur i.f{background:#d9c7ff}
+.beat .n{font-family:var(--din);font-weight:700;font-size:14px;color:#8c8c8c;text-align:center;font-style:normal;padding-top:2px}
 .tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
-.tile{height:54px;border-radius:12px;background:var(--surface);box-shadow:inset 0 0 0 .5px var(--separator-strong);
-  font-family:var(--cond);font-size:24px;font-weight:700;position:relative;overflow:hidden;transition:transform .12s}
-.tile:active{transform:scale(.95)}
-.tile small{display:block;font-family:-apple-system,"Hiragino Sans",sans-serif;font-size:10px;font-weight:600;color:var(--label-3);margin-top:-2px}
-.tile.sel{background:var(--y-purple);box-shadow:none}
-.tile.sel small{color:#e4d8ff}
 .tiles.wide{grid-template-columns:repeat(3,1fr)}
+.tile{height:54px;border-radius:14px;background:var(--y-btn);color:#d8d8d8;font-family:var(--din);font-weight:700;font-size:26px;line-height:1;padding-top:4px;
+  box-shadow:0 4px 8px rgba(0,0,0,.35);transition:transform .12s,background .12s}
+.tile:active{transform:scale(.95)}
+.tile small{display:block;font-family:-apple-system,"Hiragino Sans",sans-serif;font-size:10px;font-weight:600;color:#8c8c8c;margin-top:2px}
+.tile.sel{background:var(--y-purple);color:var(--y-lav)}
+.tile.sel small{color:var(--y-lav)}
+body.ymode input[type=range]::-webkit-slider-runnable-track{background:#3a3a3a}
+body.ymode .tog input:checked+span{background:var(--y-accent)}
 
 /* ===== shared controls ===== */
 .row{display:flex;gap:8px;align-items:center}
@@ -222,34 +233,37 @@ input[type=range]::-moz-range-thumb{width:24px;height:24px;border:0;border-radiu
     <div class="dial-wrap">
       <svg viewBox="0 0 320 320" id="tsvg">
         <defs>
-          <radialGradient id="disc-g" cx="50%" cy="45%" r="60%">
-            <stop offset="0" stop-color="#4a1410"/><stop offset=".75" stop-color="#2a0907"/><stop offset="1" stop-color="#140403"/>
+          <radialGradient id="disc-g" cx="50%" cy="38%" r="70%">
+            <stop offset="0" stop-color="#202027"/><stop offset="1" stop-color="#08080a"/>
           </radialGradient>
-          <radialGradient id="disc-ok" cx="50%" cy="45%" r="60%">
-            <stop offset="0" stop-color="#103d1c"/><stop offset=".75" stop-color="#082610"/><stop offset="1" stop-color="#031207"/>
-          </radialGradient>
+          <filter id="blur" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlur stdDeviation="14"/></filter>
+          <filter id="nglow" x="-300%" y="-50%" width="700%" height="200%">
+            <feGaussianBlur stdDeviation="3" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+          </filter>
         </defs>
-        <g id="segs"></g>
-        <circle cx="160" cy="160" r="114" id="disc" fill="url(#disc-g)"/>
-        <circle cx="160" cy="160" r="114" fill="none" stroke="#3bd45a" stroke-width="4" id="glow" opacity="0" style="transition:opacity .2s"/>
+        <circle cx="160" cy="160" r="159" fill="#0c0c0f" stroke="rgba(255,255,255,.08)"/>
+        <circle cx="160" cy="160" r="131" fill="none" stroke="rgba(255,255,255,.07)"/>
+        <g id="wheel" style="transform-origin:160px 160px"></g>
+        <path id="marker" d="M153 -3 L167 -3 L160 8 Z" fill="#4d4d55"/>
+        <path id="tolzone" fill="none" stroke="#3bd45a" stroke-width="16" opacity=".22"/>
+        <g id="cticks"></g>
+        <path id="lvl-l-bg" fill="none" stroke="#151b22" stroke-width="5" stroke-linecap="round"/>
+        <path id="lvl-r-bg" fill="none" stroke="#151b22" stroke-width="5" stroke-linecap="round"/>
+        <path id="lvl-l" fill="none" stroke="#4aa3ff" stroke-width="5" pathLength="100" stroke-dasharray="0 100"/>
+        <path id="lvl-r" fill="none" stroke="#4aa3ff" stroke-width="5" pathLength="100" stroke-dasharray="0 100"/>
+        <circle cx="160" cy="160" r="94" fill="url(#disc-g)" stroke="rgba(255,255,255,.09)"/>
+        <circle cx="160" cy="160" r="58" id="face-glow" fill="#3bd45a" filter="url(#blur)" opacity="0"/>
         <g id="face" style="transform-origin:160px 160px">
-          <circle cx="160" cy="160" r="80" id="face-bg" fill="#3a3a40"/>
-          <ellipse cx="134" cy="140" rx="9" ry="12" fill="#0d0d10"/>
-          <ellipse cx="186" cy="140" rx="9" ry="12" fill="#0d0d10"/>
-          <path id="mouth" d="M120 184 Q160 184 200 184" stroke="#0d0d10" stroke-width="9" fill="none" stroke-linecap="round"/>
+          <circle cx="160" cy="160" r="60" id="face-bg" fill="#2c2c33"/>
+          <ellipse cx="141" cy="146" rx="6.5" ry="9" fill="#0b0b0e"/>
+          <ellipse cx="179" cy="146" rx="6.5" ry="9" fill="#0b0b0e"/>
+          <path id="mouth" d="M134 178 Q160 178 186 178" stroke="#0b0b0e" stroke-width="7" fill="none" stroke-linecap="round"/>
         </g>
-        <g id="needle-g" style="transform-origin:160px 160px" opacity="0">
-          <path d="M160 6 L153 -6 L167 -6 Z" fill="#fff"/>
-          <rect x="158" y="4" width="4" height="40" rx="2" fill="#fff"/>
+        <g id="needle-g" style="transform-origin:160px 160px;opacity:0" filter="url(#nglow)">
+          <rect id="needle-r" x="158.5" y="24" width="3" height="44" rx="1.5" fill="#fff"/>
         </g>
       </svg>
       <div class="start-overlay" id="start-overlay"><button class="start-btn" id="mic-btn">🎤 マイクを開始</button></div>
-    </div>
-    <div class="meter">
-      <div class="track"></div>
-      <div class="needle" id="needle" style="opacity:.25"></div>
-      <span class="tick" style="left:0%">-50</span><span class="tick" style="left:25%">-25</span>
-      <span class="tick" style="left:50%">0</span><span class="tick" style="left:75%">+25</span><span class="tick" style="left:100%">+50</span>
     </div>
     <div class="level"><span>入力</span><div class="lbar"><div class="lfill" id="lfill"></div><div class="lth" id="lth"></div></div><span id="ldb">—</span></div>
     <div class="readout">
@@ -281,10 +295,10 @@ input[type=range]::-moz-range-thumb{width:24px;height:24px;border:0;border-radiu
 
   <!-- METRONOME -->
   <section class="page" data-page="metro">
-    <div class="mdial" id="mdial">
-      <div class="ring"></div>
-      <div class="ticks" id="ticks"></div>
-      <div class="lamp" id="lamp"></div>
+    <div class="y-title">METRONOME</div>
+    <div class="ydial" id="mdial">
+      <div class="ybase"></div>
+      <div class="yblack"></div>
       <div class="disc" id="mdisc">
         <div class="top">
           <div class="sigrow"><span class="lbl">BEAT</span><span class="sig" id="sig">4/4</span></div>
@@ -292,24 +306,33 @@ input[type=range]::-moz-range-thumb{width:24px;height:24px;border:0;border-radiu
         </div>
         <button class="go" id="go">START</button>
       </div>
+      <div class="lamp" id="lamp"></div>
     </div>
-    <div class="tname" id="tname">ANDANTE</div>
-    <div class="ctrl">
-      <button class="rbtn" data-d="-10">−10</button>
-      <button class="rbtn" data-d="-1">−1</button>
-      <button class="rbtn tap" id="tap">TAP</button>
-      <button class="rbtn" data-d="1">+1</button>
-      <button class="rbtn" data-d="10">+10</button>
+    <div class="ybtns">
+      <button class="yb a" data-d="-10">−10</button>
+      <button class="yb b sym" data-d="-1" aria-label="−1">−</button>
+      <button class="yb c sym" data-d="1" aria-label="+1">+</button>
+      <button class="yb d" data-d="10">+10</button>
     </div>
-    <div class="beats" id="beats"></div>
-    <div class="ytabs" id="ytabs">
-      <button class="ytab sel" data-p="beat">BEAT</button>
-      <button class="ytab" data-p="rhythm">RHYTHM</button>
-      <button class="ytab" data-p="sound">SOUND</button>
-      <button class="ytab" data-p="trainer">TEMPO UP</button>
+    <div class="ypick">
+      <button class="yb" id="rh-prev" aria-label="前のリズム"><svg viewBox="0 0 24 24" fill="none" stroke="#d8d8d8" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="m15 5-7 7 7 7"/></svg></button>
+      <div class="ypill" id="rh-name"></div>
+      <button class="yb" id="rh-next" aria-label="次のリズム"><svg viewBox="0 0 24 24" fill="none" stroke="#d8d8d8" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="m9 5 7 7-7 7"/></svg></button>
     </div>
-    <div class="ypanel sel" data-p="beat"><div class="tiles" id="sigs"></div></div>
-    <div class="ypanel" data-p="rhythm"><div class="tiles wide" id="subs"></div></div>
+    <div class="ynav" id="ynav">
+      <button data-p="tap"><svg viewBox="0 0 24 24"><path d="M22 14a8 8 0 0 1-8 8"/><path d="M18 11v-1a2 2 0 0 0-4 0"/><path d="M14 10V9a2 2 0 0 0-4 0v1"/><path d="M10 9.5V4a2 2 0 0 0-4 0v10"/><path d="M18 11a2 2 0 1 1 4 0v3a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-6-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"/></svg>タップテンポ</button>
+      <button data-p="beat" class="sel"><span class="sigicon" id="sig-icon">4/4</span>ビート</button>
+      <button data-p="sound"><svg viewBox="0 0 24 24"><path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M2 14h4M10 8h4M18 16h4"/></svg>ミキサー</button>
+      <button data-p="trainer"><svg viewBox="0 0 24 24"><path d="M22 7 13.5 15.5 8.5 10.5 2 17"/><path d="M16 7h6v6"/></svg>テンポアップ</button>
+    </div>
+    <div class="ypanel" data-p="tap">
+      <button class="ytap" id="tap">TAP</button>
+      <p class="note-small" style="text-align:center">曲に合わせて 2 回以上タップすると、テンポを設定します</p>
+    </div>
+    <div class="ypanel sel" data-p="beat">
+      <div class="beats" id="beats"></div>
+      <div class="tiles" id="sigs"></div>
+    </div>
     <div class="ypanel" data-p="sound">
       <div class="tiles wide" id="sounds"></div>
       <div class="card">
@@ -325,7 +348,7 @@ input[type=range]::-moz-range-thumb{width:24px;height:24px;border:0;border-radiu
         <div class="field"><label>目標テンポ <b id="tr-max-l"></b></label><input type="range" id="tr-max" min="40" max="300" step="1"></div>
       </div>
     </div>
-    <p class="note-small">外側のリングを回すとテンポを変更できます。テンポの数字をタップすると小数点まで直接入力できます。拍のバーをタップすると アクセント（強・中・弱・無音）を切り替えます。</p>
+    <p class="note-small">外側のリングを回すとテンポを変更できます。テンポの数字をタップすると小数点まで直接入力できます。‹ › でリズムを切り替え、拍のバーをタップするとアクセント（強・中・弱・無音）を変えられます。</p>
   </section>
 
   <!-- SETTINGS -->
@@ -427,7 +450,7 @@ function toast(msg, ms = 2200) {
 
 // ---------- pitch detection (YIN) ----------
 const tuner = { on: false, level: 0, analyser: null, buf: null, yin: null, hist: [], freqs: [], lastValid: 0,
-  cents: 0, note: null, susNote: null, susTime: 0, inTime: 0, lastT: 0, needleAngle: 0 };
+  cents: 0, note: null, susNote: null, susTime: 0, inTime: 0, lastT: 0, wheelAngle: 0 };
 
 function detectPitch(b, sr) {
   const N = b.length;
@@ -501,33 +524,53 @@ async function startTuner() {
 }
 
 // ---------- tuner UI ----------
-function buildSegs() {
-  const g = $('#segs'); g.innerHTML = '';
-  const cx = 160, cy = 160, r1 = 156, r0 = 118;
-  const pt = (r, a) => [cx + r * Math.cos(a), cy + r * Math.sin(a)];
+const SVGNS = 'http://www.w3.org/2000/svg';
+// angles are degrees clockwise from 12 o'clock
+const polar = (r, a) => [160 + r * Math.sin(a * Math.PI / 180), 160 - r * Math.cos(a * Math.PI / 180)];
+function arc(r, a0, a1) {
+  const [x0, y0] = polar(r, a0), [x1, y1] = polar(r, a1);
+  return `M${x0} ${y0}A${r} ${r} 0 ${Math.abs(a1 - a0) > 180 ? 1 : 0} ${a1 > a0 ? 1 : 0} ${x1} ${y1}`;
+}
+function svgEl(tag, attrs) {
+  const e = document.createElementNS(SVGNS, tag);
+  for (const k in attrs) e.setAttribute(k, attrs[k]);
+  return e;
+}
+// note wheel: rotates so the sounding note sits under the marker at 12 o'clock
+function buildWheel() {
+  const g = $('#wheel'); g.innerHTML = '';
   for (let i = 0; i < 12; i++) {
-    const a0 = (-90 + i * 30 - 15) * Math.PI / 180, a1 = (-90 + i * 30 + 15) * Math.PI / 180;
-    const [x0, y0] = pt(r1, a0), [x1, y1] = pt(r1, a1), [x2, y2] = pt(r0, a1), [x3, y3] = pt(r0, a0);
-    const p = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-    p.setAttribute('d', `M${x0} ${y0}A${r1} ${r1} 0 0 1 ${x1} ${y1}L${x2} ${y2}A${r0} ${r0} 0 0 0 ${x3} ${y3}Z`);
-    p.setAttribute('class', 'seg'); p.dataset.i = i; g.appendChild(p);
-    const [lx, ly] = pt((r0 + r1) / 2, (-90 + i * 30) * Math.PI / 180);
-    const t = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-    t.setAttribute('x', lx); t.setAttribute('y', ly); t.setAttribute('class', 'seg-label'); t.dataset.i = i;
     const label = NAMES[S.naming][i];
-    t.textContent = label; if (label.length > 2) t.style.fontSize = '10px';
+    const t = svgEl('text', { x: 160, y: 16, class: 'wl', transform: `rotate(${i * 30} 160 160)` });
+    t.dataset.i = i; t.textContent = label; if (label.length > 2) t.style.fontSize = '11px';
     g.appendChild(t);
+    const [x, y] = polar(145, i * 30 + 15);
+    const d = svgEl('circle', { cx: x, cy: y, r: 1.6, fill: '#3a3a42', class: 'wd' }); d.dataset.i = i + 0.5;
+    g.appendChild(d);
   }
-  paintSegs(-1);
+  fadeWheel();
 }
-// segments alternate pale blue / mint like the TonalEnergy icon; the sounding note lights up
-function paintSegs(on) {
-  $$('.seg').forEach(s => {
-    const i = +s.dataset.i, even = i % 2 === 0;
-    s.style.fill = i === on ? (even ? 'var(--te-blue)' : 'var(--te-mint)') : (even ? '#16303d' : '#173426');
+// only the notes near 12 o'clock stay visible, so nothing reads upside-down
+function fadeWheel() {
+  $$('#wheel .wl, #wheel .wd').forEach(e => {
+    const a = ((+e.dataset.i * 30 + tuner.wheelAngle) % 360 + 540) % 360 - 180;
+    e.style.opacity = Math.max(0, 1 - Math.abs(a) / 100).toFixed(2);
   });
-  $$('.seg-label').forEach(s => s.classList.toggle('on', +s.dataset.i === on));
 }
+// cents scale: ±50 cents over ±60°
+function buildTicks() {
+  const g = $('#cticks'); g.innerHTML = '';
+  for (let c = -50; c <= 50; c += 5) {
+    const a = c * 1.2, major = c % 25 === 0;
+    const [x0, y0] = polar(106, a), [x1, y1] = polar(major ? 124 : 117, a);
+    g.appendChild(svgEl('line', { x1: x0, y1: y0, x2: x1, y2: y1, 'stroke-linecap': 'round',
+      stroke: c === 0 ? '#d8d8de' : major ? '#5b5b64' : '#2f2f37', 'stroke-width': c === 0 ? 2.5 : 1.6 }));
+  }
+  $('#lvl-l-bg').setAttribute('d', arc(113, -150, -78)); $('#lvl-l').setAttribute('d', arc(113, -150, -78));
+  $('#lvl-r-bg').setAttribute('d', arc(113, 150, 78)); $('#lvl-r').setAttribute('d', arc(113, 150, 78));
+  updateTol();
+}
+function updateTol() { $('#tolzone').setAttribute('d', arc(115, -S.tolerance * 1.2, S.tolerance * 1.2)); }
 
 const hist = $('#hist'), hctx = hist.getContext('2d');
 function sizeCanvas() {
@@ -553,13 +596,14 @@ function drawHist() {
     const y = mid - Math.max(-50, Math.min(50, v)) * sc;
     if (!drawing) { hctx.moveTo(x, y); drawing = true; } else hctx.lineTo(x, y);
   }
-  hctx.strokeStyle = '#9fd3ee'; hctx.stroke();
+  hctx.strokeStyle = '#4aa3ff'; hctx.stroke();
 }
 
 function faceColor(c) {
   const a = Math.min(1, Math.abs(c) / 35);
   return `hsl(${130 - 130 * a} 72% ${50 + 4 * (1 - a)}%)`;
 }
+const stateColor = c => Math.abs(c) <= S.tolerance ? '#3bd45a' : Math.abs(c) < 20 ? '#ffad33' : '#ff5a5f';
 
 function tunerFrame(now) {
   if (!tuner.on) return;
@@ -568,10 +612,12 @@ function tunerFrame(now) {
   tuner.analyser.getFloatTimeDomainData(tuner.buf);
   const f = detectPitch(tuner.buf, ctx.sampleRate);
   const pos = r => Math.max(0, Math.min(100, (20 * Math.log10(r + 1e-9) + 70) / 70 * 100));
-  $('#lfill').style.width = pos(tuner.level) + '%';
+  const lv = pos(tuner.level);
+  $('#lfill').style.width = lv + '%';
   $('#lfill').style.background = tuner.level >= minRms() ? 'var(--te-green)' : '#4aa3ff';
   $('#lth').style.left = pos(minRms()) + '%';
   $('#ldb').textContent = Math.round(20 * Math.log10(tuner.level + 1e-9)) + ' dB';
+  $('#lvl-l').setAttribute('stroke-dasharray', `${lv} 100`); $('#lvl-r').setAttribute('stroke-dasharray', `${lv} 100`);
   const silent = f <= 0 || f > 4200;
   if (!silent) {
     tuner.freqs.push(f); if (tuner.freqs.length > 5) tuner.freqs.shift();
@@ -579,49 +625,51 @@ function tunerFrame(now) {
   } else if (now - tuner.lastValid > 250) {
     tuner.freqs = [];
   }
+  const labels = $$('.wl');
   if (tuner.freqs.length >= 2) {
     const sorted = [...tuner.freqs].sort((a, b) => a - b);
     const fm = sorted[sorted.length >> 1];
     const r = analyze(fm);
     if (tuner.note !== r.n) tuner.cents = r.c; else tuner.cents = tuner.cents * 0.55 + r.c * 0.45;
     tuner.note = r.n;
-    const c = tuner.cents, cc = Math.max(-50, Math.min(50, c)), inTune = Math.abs(c) <= S.tolerance;
+    const c = tuner.cents, cc = Math.max(-50, Math.min(50, c)), inTune = Math.abs(c) <= S.tolerance, col = stateColor(c);
     const written = r.n + S.transpose, pc = mod12(written);
     // readout
     $('#note').innerHTML = `${noteName(written)}<sub>${Math.floor(written / 12) - 1}</sub>`;
     $('#note').classList.remove('off');
-    $('#note').style.color = inTune ? 'var(--te-green)' : Math.abs(c) < 20 ? 'var(--warning)' : 'var(--danger)';
+    $('#note').style.color = col;
     $('#cents').textContent = (c >= 0 ? '+' : '−') + Math.abs(c).toFixed(1);
     $('#hz').textContent = fm.toFixed(1) + ' Hz';
-    $('#needle').style.left = (50 + cc) + '%';
-    $('#needle').style.opacity = 1;
     // face
     $('#face-bg').setAttribute('fill', faceColor(c));
     const k = Math.max(-1, Math.min(1, 1 - Math.abs(c) / 18));
-    $('#mouth').setAttribute('d', `M120 ${184 - k * 6} Q160 ${184 + k * 34} 200 ${184 - k * 6}`);
-    $('#face').style.transform = `rotate(${cc * 0.6}deg)`;
-    $('#disc').setAttribute('fill', inTune ? 'url(#disc-ok)' : 'url(#disc-g)');
-    $('#glow').setAttribute('opacity', inTune ? 1 : 0);
-    // the needle sits inside the lit segment: 30° per semitone, so ±50 cents spans the segment
-    let target = pc * 30 + cc * 0.3;
-    target += Math.round((tuner.needleAngle - target) / 360) * 360;
-    tuner.needleAngle = target;
-    const ng = $('#needle-g'); ng.style.transform = `rotate(${target}deg)`; ng.setAttribute('opacity', 1);
-    paintSegs(pc);
+    $('#mouth').setAttribute('d', `M134 ${179 - k * 5} Q160 ${179 + k * 26} 186 ${179 - k * 5}`);
+    $('#face').style.transform = `rotate(${cc * 0.5}deg)`;
+    const glow = $('#face-glow'); glow.setAttribute('fill', col); glow.setAttribute('opacity', inTune ? 0.75 : 0.4);
+    // needle on the cents arc
+    const ng = $('#needle-g'); ng.style.transform = `rotate(${cc * 1.2}deg)`; ng.style.opacity = 1;
+    $('#needle-r').setAttribute('fill', col);
+    $('#marker').setAttribute('fill', col);
+    // wheel: take the short way round when crossing B→C
+    let target = -pc * 30;
+    target += Math.round((tuner.wheelAngle - target) / 360) * 360;
+    tuner.wheelAngle = target;
+    $('#wheel').style.transform = `rotate(${target}deg)`;
+    if (tuner.wheelPc !== pc) { tuner.wheelPc = pc; fadeWheel(); }
+    labels.forEach(s => s.classList.toggle('on', +s.dataset.i === pc));
     // sustain score
     if (tuner.susNote !== r.n) { tuner.susNote = r.n; tuner.susTime = 0; tuner.inTime = 0; }
     tuner.susTime += dt; if (inTune) tuner.inTime += dt;
     tuner.hist.push(c);
   } else {
     $('#note').classList.add('off'); $('#note').style.color = '';
-    $('#needle').style.opacity = .25;
-    $('#face-bg').setAttribute('fill', '#3a3a40');
-    $('#mouth').setAttribute('d', 'M124 186 Q160 186 196 186');
+    $('#face-bg').setAttribute('fill', '#2c2c33');
+    $('#mouth').setAttribute('d', 'M136 180 Q160 180 184 180');
     $('#face').style.transform = 'rotate(0deg)';
-    $('#disc').setAttribute('fill', 'url(#disc-g)');
-    $('#glow').setAttribute('opacity', 0);
-    $('#needle-g').setAttribute('opacity', 0);
-    paintSegs(-1);
+    $('#face-glow').setAttribute('opacity', 0);
+    $('#needle-g').style.opacity = 0;
+    $('#marker').setAttribute('fill', '#4d4d55');
+    labels.forEach(s => s.classList.remove('on'));
     if (now - tuner.lastValid > 1500) tuner.susNote = null;
     tuner.hist.push(null);
   }
@@ -678,9 +726,9 @@ function refreshDrone() {
 
 // ---------- metronome ----------
 const SUBS = [
-  { n: '♩', d: '4分', pat: [0] }, { n: '♫', d: '8分', pat: [0, .5] }, { n: '3', d: '3連符', pat: [0, 1 / 3, 2 / 3] },
-  { n: '♬', d: '16分', pat: [0, .25, .5, .75] }, { n: 'SHFL', d: 'シャッフル', pat: [0, 2 / 3] },
-  { n: '𝄾♪', d: '8分裏', pat: [0, .5], off: true }, { n: '♬♪', d: '16分+8分', pat: [0, .25, .5] },
+  { n: '♩', d: '4分音符', pat: [0] }, { n: '♫', d: '8分音符', pat: [0, .5] }, { n: '3', d: '3連符', pat: [0, 1 / 3, 2 / 3] },
+  { n: '♬', d: '16分音符', pat: [0, .25, .5, .75] }, { n: 'SHUFFLE', d: 'シャッフル', pat: [0, 2 / 3] },
+  { n: 'OFF', d: '8分裏打ち', pat: [0, .5], off: true }, { n: '♬♪', d: '16分+8分', pat: [0, .25, .5] },
 ];
 const SIGS = [[1, 4], [2, 4], [3, 4], [4, 4], [5, 4], [6, 4], [7, 4], [3, 8], [5, 8], [6, 8], [7, 8], [9, 8], [12, 8]];
 const SOUNDS = [['beep', '電子音', 'BEEP'], ['high', 'ハイ', 'HIGH'], ['click', 'クリック', 'CLICK'], ['wood', 'ウッド', 'WOOD'], ['bell', 'ベル', 'BELL']];
@@ -779,17 +827,15 @@ function refreshMetroState() {
   $('#mini-metro').classList.toggle('on', M.playing);
   $('#mini-icon').innerHTML = M.playing ? '<rect x="2" y="2" width="8" height="8" rx="1" fill="#fff"/>' : '<path d="M2 1l9 5-9 5z" fill="#fff"/>';
 }
-function tempoName(b) {
-  return b < 40 ? 'GRAVE' : b < 60 ? 'LARGO' : b < 66 ? 'LARGHETTO' : b < 76 ? 'ADAGIO' : b < 108 ? 'ANDANTE'
-    : b < 120 ? 'MODERATO' : b < 156 ? 'ALLEGRO' : b < 176 ? 'VIVACE' : b < 200 ? 'PRESTO' : 'PRESTISSIMO';
+function renderRhythm() {
+  const r = SUBS[S.sub];
+  $('#rh-name').innerHTML = `<span>${r.n}</span><small>${r.d}</small>`;
 }
 function setBpm(v) {
   S.bpm = Math.round(Math.max(30, Math.min(300, v)) * 100) / 100;
   const [i, d] = S.bpm.toFixed(2).split('.');
   $('#tempo-num').innerHTML = `${i}<span>.${d}</span>`;
-  $('#tname').textContent = tempoName(S.bpm);
   $('#mini-bpm').textContent = Number.isInteger(S.bpm) ? S.bpm : S.bpm.toFixed(2);
-  $('#ticks').style.transform = `rotate(${S.bpm * 6}deg)`;
   save();
 }
 function renderBeats() {
@@ -800,7 +846,7 @@ function renderBeats() {
     b.onclick = () => { S.accents[i] = (S.accents[i] + 3) % 4; renderBeats(); save(); };
     el.appendChild(b);
   });
-  $('#sig').textContent = `${S.beats}/${S.unit}`;
+  $('#sig').textContent = $('#sig-icon').textContent = `${S.beats}/${S.unit}`;
 }
 function metroFrame() {
   if (!M.playing || !ctx) return;
@@ -862,7 +908,7 @@ function refreshHeader() {
   $('#tol-label').textContent = S.tolerance;
 }
 function buildNameDependent() {
-  buildSegs();
+  buildWheel();
   chips($('#d-notes'), NAMES[S.naming].map((n, i) => [i, n]), v => v === S.dNote, v => { S.dNote = v; refreshDrone(); });
   chips($('#keys'), NAMES[S.naming].map((n, i) => [i, n]), v => v === S.key, v => { S.key = v; refreshAll(); });
   refreshHeader(); refreshDrone();
@@ -873,6 +919,8 @@ function selectTab(name) {
   const btns = $$('#tabs button'), idx = btns.findIndex(b => b.dataset.tab === name);
   btns.forEach((b, i) => i === idx ? b.setAttribute('aria-current', 'page') : b.removeAttribute('aria-current'));
   $$('.page').forEach(p => p.classList.toggle('active', p.dataset.page === name));
+  document.body.classList.toggle('ymode', name === 'metro');
+  document.querySelector('meta[name=theme-color]').content = name === 'metro' ? '#232323' : '#000000';
   const hl = $('#tab-hl'), blob = hl.firstElementChild;
   hl.style.transform = `translateX(${idx * 100}%)`;
   blob.classList.remove('jelly'); void blob.offsetWidth; blob.classList.add('jelly');
@@ -892,17 +940,13 @@ function init() {
   $('#d-fifth').onchange = e => { S.dFifth = e.target.checked; save(); refreshDrone(); };
   $('#d-btn').onclick = () => { drone ? stopDrone() : startDrone(); refreshDrone(); };
   // metronome
-  for (let i = 0; i < 60; i++) {
-    const t = document.createElement('i'); if (i % 5 === 0) t.className = 'major';
-    t.style.transform = `rotate(${i * 6}deg)`; $('#ticks').appendChild(t);
-  }
   $('#go').onclick = toggleMetro;
   $('#mini-metro').onclick = toggleMetro;
   $('#tempo-num').onclick = () => {
     const v = parseFloat(prompt('テンポ（30〜300）', S.bpm));
     if (!isNaN(v)) setBpm(v);
   };
-  $$('.rbtn[data-d]').forEach(b => b.onclick = () => setBpm(Math.round(S.bpm) + +b.dataset.d));
+  $$('.yb[data-d]').forEach(b => b.onclick = () => setBpm(Math.round(S.bpm) + +b.dataset.d));
   const taps = [];
   $('#tap').addEventListener('pointerdown', () => {
     const t = performance.now();
@@ -913,8 +957,8 @@ function init() {
       setBpm(Math.round(60000 / avg));
     }
   });
-  $$('.ytab').forEach(b => b.onclick = () => {
-    $$('.ytab').forEach(x => x.classList.toggle('sel', x === b));
+  $$('#ynav button').forEach(b => b.onclick = () => {
+    $$('#ynav button').forEach(x => x.classList.toggle('sel', x === b));
     $$('.ypanel').forEach(p => p.classList.toggle('sel', p.dataset.p === b.dataset.p));
   });
   chips($('#sigs'), SIGS.map(([b, u]) => [`${b}/${u}`, `${b}/${u}`]), v => v === `${S.beats}/${S.unit}`, v => {
@@ -923,7 +967,10 @@ function init() {
     if (M.beat >= b) M.beat = 0;
     renderBeats();
   }, 'tile');
-  chips($('#subs'), SUBS.map((s, i) => [i, s.n, s.d]), v => v === S.sub, v => { S.sub = v; M.sub = 0; }, 'tile');
+  const stepRhythm = d => { S.sub = (S.sub + d + SUBS.length) % SUBS.length; M.sub = 0; save(); renderRhythm(); };
+  $('#rh-prev').onclick = () => stepRhythm(-1);
+  $('#rh-next').onclick = () => stepRhythm(1);
+  renderRhythm();
   chips($('#sounds'), SOUNDS.map(([k, ja, en]) => [k, en, ja]), v => v === S.sound, v => {
     S.sound = v;
     if (!M.playing) { ac(); playClick(ctx.currentTime + 0.02, 3); } // preview
@@ -944,10 +991,11 @@ function init() {
   const nudgeA4 = d => { S.a4 = Math.max(415, Math.min(466, S.a4 + d)); $('#a4').value = S.a4; $('#a4-l').textContent = S.a4 + ' Hz'; save(); refreshAll(); };
   $('#a4-m').onclick = () => nudgeA4(-1); $('#a4-p').onclick = () => nudgeA4(1);
   chips($('#temps'), Object.entries(TEMPS).map(([k, t]) => [k, t.name]), v => v === S.temperament, v => { S.temperament = v; refreshAll(); });
-  chips($('#trans'), TRANS.map(t => [t.v, t.n + ' 管']), v => v === S.transpose, v => { S.transpose = v; refreshAll(); buildSegs(); });
+  chips($('#trans'), TRANS.map(t => [t.v, t.n + ' 管']), v => v === S.transpose, v => { S.transpose = v; refreshAll(); buildWheel(); });
   chips($('#naming'), [['en', 'C D E'], ['ja', 'ド レ ミ'], ['de', 'C D E (独)']], v => v === S.naming, v => { S.naming = v; buildNameDependent(); });
-  rangeBind('tol', 'tolerance', v => '±' + v + ' cents', refreshHeader);
+  rangeBind('tol', 'tolerance', v => '±' + v + ' cents', () => { refreshHeader(); updateTol(); });
   rangeBind('sens', 'sens', v => v + ' / 10');
+  buildTicks();
   buildNameDependent();
   // tabs
   $$('#tabs button').forEach(b => b.onclick = () => selectTab(b.dataset.tab));
