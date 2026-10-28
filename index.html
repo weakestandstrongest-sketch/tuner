@@ -409,15 +409,15 @@ body.embedded .app{display:none}
     <li><button data-tab="just"><svg viewBox="0 0 24 24"><path d="M8 2v7a4 4 0 0 0 8 0V2"/><path d="M12 13v9"/><path d="M9 22h6"/></svg>純正律</button></li>
   </ul>
 </nav>
-<div class="embed" data-page="chords"><iframe data-src="chords/index.html?v=20261028111035" title="Chord Wheel"></iframe></div>
-<div class="embed" data-page="just"><iframe data-src="just/index.html?v=20261028111035" title="コード名検索 × 純正律"></iframe></div>
+<div class="embed" data-page="chords"><iframe data-src="chords/index.html?v=20261028111435" title="Chord Wheel"></iframe></div>
+<div class="embed" data-page="just"><iframe data-src="just/index.html?v=20261028111435" title="コード名検索 × 純正律"></iframe></div>
 <div class="toast" id="toast"></div>
 
 <script>
 (() => {
 'use strict';
 // Bumped by tools/bump-version.sh on every release; must match version.json.
-const APP_VERSION = '20261028111035';
+const APP_VERSION = '20261028111435';
 // GitHub Pages lets browsers reuse files for 10 minutes and home-screen apps keep them longer,
 // so ask for version.json uncached and, if a newer release is out, reopen under a fresh URL.
 async function checkForUpdate() {
@@ -541,17 +541,48 @@ function analyze(f) {
   return best;
 }
 
+// Japanese explanation for each getUserMedia / Web Audio failure, so the user knows what to do.
+function micErrorMessage(e) {
+  const n = e && e.name;
+  if (n === 'NotAllowedError' || n === 'SecurityError')
+    return 'マイクが許可されていません。「設定 > アプリ > Safari > マイク」を「許可」にして、ページを開き直してください';
+  if (n === 'NotReadableError' || n === 'AbortError')
+    return 'マイクが他のアプリで使用中です。通話中やほかの録音アプリを使っている間は使えません。終了してからもう一度押してください';
+  if (n === 'NotFoundError' || n === 'OverconstrainedError')
+    return 'マイクが見つかりません。イヤホンやBluetooth機器を外して、もう一度押してください';
+  return 'マイクを開始できませんでした（' + (n || '') + (e && e.message ? ': ' + e.message : '') + '）';
+}
+
 async function startTuner() {
   if (!window.isSecureContext || !navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
     toast('マイクは HTTPS のページでのみ使えます（現在: ' + location.protocol + '//' + location.host + '）', 6000); return;
   }
-  const c = ac(); // create/resume inside the tap (required on iOS)
+  const btn = $('#mic-btn');
+  btn.disabled = true; btn.textContent = '🎤 開始しています…';
+  let c = ac(); // create/resume inside the tap (required on iOS)
   try {
-    const stream = await navigator.mediaDevices.getUserMedia({
-      audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false } });
+    let stream;
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({
+        audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false } });
+    } catch (e) {
+      // some devices reject the processing options; plain audio is still good enough to tune with
+      if (e && (e.name === 'NotAllowedError' || e.name === 'SecurityError')) throw e;
+      stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    }
     // iOS may suspend/interrupt the context while switching to recording mode
     if (c.state !== 'running') await c.resume().catch(() => {});
-    const src = c.createMediaStreamSource(stream);
+    let src;
+    try {
+      src = c.createMediaStreamSource(stream);
+    } catch (e) {
+      // a context made before recording started can refuse the mic (sample-rate mismatch): start a fresh one
+      if (M.playing) stopMetro();
+      if (drone) stopDrone();
+      try { c.close(); } catch (_) {}
+      ctx = null; c = ac();
+      src = c.createMediaStreamSource(stream);
+    }
     const an = c.createAnalyser(); an.fftSize = 2048;
     // Safari only processes nodes that eventually reach the destination
     const mute = c.createGain(); mute.gain.value = 0;
@@ -562,9 +593,9 @@ async function startTuner() {
     $('#start-overlay').style.display = 'none';
     keepAwake(true);
   } catch (e) {
-    const denied = e && (e.name === 'NotAllowedError' || e.name === 'SecurityError');
-    toast(denied ? 'マイクが許可されていません。iPhone は「設定 > アプリ > Safari > マイク」で許可してください'
-      : 'マイクを開始できませんでした（' + (e && e.name || e) + '）', 7000);
+    toast(micErrorMessage(e), 9000);
+  } finally {
+    btn.disabled = false; btn.textContent = '🎤 マイクを開始';
   }
 }
 
