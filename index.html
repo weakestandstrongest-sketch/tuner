@@ -33,6 +33,7 @@
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0}
+html{background:#000}
 body{min-height:calc(100lvh + 1px)}
 html{-webkit-text-size-adjust:100%}
 body{background:var(--bg);color:var(--label);
@@ -229,6 +230,10 @@ body.embedded .app{display:none}
 #splash{position:fixed;inset:0;z-index:100;background:#000;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:opacity .38s ease}
 #splash.out{opacity:0;pointer-events:none}
 #splash.gone{display:none}
+/* black cover put up when the app goes to the background, so the snapshot iOS shows at the next launch is black, not the tuner */
+#cover{position:fixed;inset:0;z-index:99;background:#000;display:none;opacity:1;transition:opacity .25s ease}
+#cover.on{display:block}
+#cover.fade{opacity:0}
 #splash .mark{width:min(46vw,210px);height:auto;overflow:visible;transition:transform .38s ease}
 #splash.out .mark{transform:scale(1.12)}
 #splash .name{margin-top:22px;font-size:12px;font-weight:600;letter-spacing:.34em;color:var(--label-3);opacity:0;animation:sp-fade .5s .95s forwards}
@@ -270,19 +275,34 @@ body.embedded .app{display:none}
   <div class="name">TUNER METRONOME</div>
 </div>
 <script>
-// Plays once per launch (a reload for a new release in the same session skips it); a tap skips it too.
+// Plays once per launch; a tap skips it. It only counts as seen once it has finished, so a reload
+// into a new release that lands mid-animation plays it again instead of cutting to the tuner.
 (() => {
   const el = document.getElementById('splash');
   let seen = false;
-  try { seen = !!sessionStorage.getItem('tm-splash'); sessionStorage.setItem('tm-splash', '1'); } catch (e) {}
+  try { seen = !!sessionStorage.getItem('tm-splash'); } catch (e) {}
   if (seen) { el.classList.add('gone'); return; }
   const done = () => {
     if (el.classList.contains('out')) return;
+    try { sessionStorage.setItem('tm-splash', '1'); } catch (e) {}
     el.classList.add('out');
     setTimeout(() => el.classList.add('gone'), 400);
   };
   el.addEventListener('pointerdown', done);
   setTimeout(done, matchMedia('(prefers-reduced-motion: reduce)').matches ? 400 : 1800);
+})();
+</script>
+<div id="cover" aria-hidden="true"></div>
+<script>
+(() => {
+  const cover = document.getElementById('cover');
+  const hide = () => { cover.classList.remove('fade'); cover.classList.add('on'); };
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'hidden') return hide();
+    // back in the foreground: fade the cover away to reveal the app as it was
+    requestAnimationFrame(() => { cover.classList.add('fade'); setTimeout(() => cover.classList.remove('on', 'fade'), 260); });
+  });
+  window.addEventListener('pagehide', hide);
 })();
 </script>
 <div class="app">
@@ -468,15 +488,15 @@ body.embedded .app{display:none}
     <li><button data-tab="just"><svg viewBox="0 0 24 24"><path d="M8 2v7a4 4 0 0 0 8 0V2"/><path d="M12 13v9"/><path d="M9 22h6"/></svg>純正律</button></li>
   </ul>
 </nav>
-<div class="embed" data-page="chords"><iframe data-src="chords/index.html?v=20261028113216" title="Chord Wheel"></iframe></div>
-<div class="embed" data-page="just"><iframe data-src="just/index.html?v=20261028113216" title="コード名検索 × 純正律"></iframe></div>
+<div class="embed" data-page="chords"><iframe data-src="chords/index.html?v=20261028113450" title="Chord Wheel"></iframe></div>
+<div class="embed" data-page="just"><iframe data-src="just/index.html?v=20261028113450" title="コード名検索 × 純正律"></iframe></div>
 <div class="toast" id="toast"></div>
 
 <script>
 (() => {
 'use strict';
 // Bumped by tools/bump-version.sh on every release; must match version.json.
-const APP_VERSION = '20261028113216';
+const APP_VERSION = '20261028113450';
 // GitHub Pages lets browsers reuse files for 10 minutes and home-screen apps keep them longer,
 // so ask for version.json uncached and, if a newer release is out, reopen under a fresh URL.
 async function checkForUpdate() {
