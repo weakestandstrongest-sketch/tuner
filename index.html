@@ -27,13 +27,14 @@
   color-scheme:dark;
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{margin:0;height:100%;overflow:hidden}
+html,body{margin:0}
+body{min-height:calc(100lvh + 1px)}
 html{-webkit-text-size-adjust:100%}
 body{background:var(--bg);color:var(--label);
   font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","SF Pro JP","Hiragino Sans","Hiragino Kaku Gothic ProN","Noto Sans JP",system-ui,sans-serif;
   overscroll-behavior:none;-webkit-user-select:none;user-select:none}
 button{font:inherit;color:inherit;border:0;background:none;cursor:pointer;touch-action:manipulation;padding:0}
-.app{height:100%;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;max-width:520px;margin:0 auto;padding:env(safe-area-inset-top) 16px calc(86px + env(safe-area-inset-bottom))}
+.app{max-width:520px;margin:0 auto;padding:calc(env(safe-area-inset-top) + 14px) 16px calc(86px + env(safe-area-inset-bottom))}
 
 /* ===== header (TonalEnergy style) ===== */
 .topbar{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:8px;padding:10px 0 8px;font-size:11px;line-height:1.35;color:var(--label-3)}
@@ -409,15 +410,15 @@ body.embedded .app{display:none}
     <li><button data-tab="just"><svg viewBox="0 0 24 24"><path d="M8 2v7a4 4 0 0 0 8 0V2"/><path d="M12 13v9"/><path d="M9 22h6"/></svg>純正律</button></li>
   </ul>
 </nav>
-<div class="embed" data-page="chords"><iframe data-src="chords/index.html?v=20261028111435" title="Chord Wheel"></iframe></div>
-<div class="embed" data-page="just"><iframe data-src="just/index.html?v=20261028111435" title="コード名検索 × 純正律"></iframe></div>
+<div class="embed" data-page="chords"><iframe data-src="chords/index.html?v=20261028112000" title="Chord Wheel"></iframe></div>
+<div class="embed" data-page="just"><iframe data-src="just/index.html?v=20261028112000" title="コード名検索 × 純正律"></iframe></div>
 <div class="toast" id="toast"></div>
 
 <script>
 (() => {
 'use strict';
 // Bumped by tools/bump-version.sh on every release; must match version.json.
-const APP_VERSION = '20261028111435';
+const APP_VERSION = '20261028112000';
 // GitHub Pages lets browsers reuse files for 10 minutes and home-screen apps keep them longer,
 // so ask for version.json uncached and, if a newer release is out, reopen under a fresh URL.
 async function checkForUpdate() {
@@ -1033,7 +1034,7 @@ function selectTab(name) {
   hl.style.opacity = idx < 0 ? 0 : 1;
   blob.classList.remove('jelly'); void blob.offsetWidth; blob.classList.add('jelly');
   if (name === 'tuner') sizeCanvas();
-  $('.app').scrollTop = 0;
+  window.scrollTo(0, 0);
 }
 
 function init() {
