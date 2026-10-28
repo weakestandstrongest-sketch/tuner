@@ -225,6 +225,24 @@ input[type=range]::-moz-range-thumb{width:24px;height:24px;border:0;border-radiu
 .embed.active{display:block}
 .embed iframe{display:block;width:100%;height:100%;border:0;background:#000}
 body.embedded .app{display:none}
+ /* launch animation: the icon assembles itself, then the app fades in */
+#splash{position:fixed;inset:0;z-index:100;background:#000;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:opacity .38s ease}
+#splash.out{opacity:0;pointer-events:none}
+#splash.gone{display:none}
+#splash .mark{width:min(46vw,210px);height:auto;overflow:visible;transition:transform .38s ease}
+#splash.out .mark{transform:scale(1.12)}
+#splash .name{margin-top:22px;font-size:12px;font-weight:600;letter-spacing:.34em;color:var(--label-3);opacity:0;animation:sp-fade .5s .95s forwards}
+.sp-track{stroke-dasharray:1000;stroke-dashoffset:1000;animation:sp-draw .55s .1s cubic-bezier(.4,0,.2,1) forwards}
+.sp-zone{opacity:0;animation:sp-fade .3s .95s forwards}
+.sp-needle{transform-box:view-box;transform-origin:512px 640px;transform:rotate(-68deg);opacity:0;animation:sp-swing 1s .3s forwards}
+.sp-pivot{transform-box:fill-box;transform-origin:center;transform:scale(0);animation:sp-pop .35s .25s cubic-bezier(.34,1.56,.64,1) forwards}
+.sp-dot{transform-box:fill-box;transform-origin:center;opacity:0;animation:sp-beat .32s forwards}
+@keyframes sp-draw{to{stroke-dashoffset:0}}
+@keyframes sp-fade{to{opacity:1}}
+@keyframes sp-pop{to{transform:scale(1)}}
+@keyframes sp-swing{0%{opacity:0;transform:rotate(-68deg)}15%{opacity:1}55%{transform:rotate(12deg)}72%{transform:rotate(-5deg)}86%{transform:rotate(2deg)}100%{opacity:1;transform:rotate(0)}}
+@keyframes sp-beat{0%{opacity:0;transform:scale(.4)}45%{opacity:1;transform:scale(1.55)}100%{opacity:var(--o);transform:scale(1)}}
+@media (prefers-reduced-motion:reduce){#splash *{animation-duration:.01s!important;animation-delay:0s!important}}
 .toast{position:fixed;left:50%;bottom:calc(92px + env(safe-area-inset-bottom));transform:translateX(-50%);background:var(--surface-2);
   padding:10px 16px;border-radius:14px;font-size:13px;opacity:0;transition:opacity .2s;pointer-events:none;max-width:90%;z-index:50;
   box-shadow:inset 0 0 0 .5px var(--separator-strong),0 8px 30px #000a}
@@ -232,6 +250,41 @@ body.embedded .app{display:none}
 </style>
 </head>
 <body>
+<div id="splash" aria-hidden="true">
+  <svg class="mark" viewBox="150 140 724 700">
+    <defs><filter id="sp-glow" x="-100%" y="-50%" width="300%" height="200%"><feGaussianBlur stdDeviation="14"/></filter></defs>
+    <path class="sp-track" pathLength="1000" d="M201.9 399.1A330 330 0 0 1 822.1 399.1" stroke="#2c2c31" stroke-width="44" fill="none" stroke-linecap="round"/>
+    <path class="sp-zone" d="M443.4 189.2A330 330 0 0 1 580.6 189.2" stroke="#3bd45a" stroke-width="44" fill="none" stroke-linecap="round"/>
+    <g class="sp-needle">
+      <line x1="512" y1="640" x2="564.9" y2="135.7" stroke="#3bd45a" stroke-width="30" stroke-linecap="round" filter="url(#sp-glow)"/>
+      <line x1="512" y1="640" x2="564.9" y2="135.7" stroke="#eafff0" stroke-width="18" stroke-linecap="round"/>
+    </g>
+    <circle class="sp-pivot" cx="512" cy="640" r="44" fill="#f5f5f7"/>
+    <g fill="#7d4fd1">
+      <circle class="sp-dot" cx="392" cy="800" r="26" style="--o:1;animation-delay:1s"/>
+      <circle class="sp-dot" cx="472" cy="800" r="18" style="--o:.6;animation-delay:1.13s"/>
+      <circle class="sp-dot" cx="552" cy="800" r="18" style="--o:.6;animation-delay:1.26s"/>
+      <circle class="sp-dot" cx="632" cy="800" r="18" style="--o:.6;animation-delay:1.39s"/>
+    </g>
+  </svg>
+  <div class="name">TUNER METRONOME</div>
+</div>
+<script>
+// Plays once per launch (a reload for a new release in the same session skips it); a tap skips it too.
+(() => {
+  const el = document.getElementById('splash');
+  let seen = false;
+  try { seen = !!sessionStorage.getItem('tm-splash'); sessionStorage.setItem('tm-splash', '1'); } catch (e) {}
+  if (seen) { el.classList.add('gone'); return; }
+  const done = () => {
+    if (el.classList.contains('out')) return;
+    el.classList.add('out');
+    setTimeout(() => el.classList.add('gone'), 400);
+  };
+  el.addEventListener('pointerdown', done);
+  setTimeout(done, matchMedia('(prefers-reduced-motion: reduce)').matches ? 400 : 1800);
+})();
+</script>
 <div class="app">
   <div class="topbar">
     <div class="tb-l"><button class="gear" id="gear" aria-label="設定"><svg viewBox="0 0 24 24"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg></button><div>音律<br><b id="tb-temp">平均律</b></div></div>
@@ -415,15 +468,15 @@ body.embedded .app{display:none}
     <li><button data-tab="just"><svg viewBox="0 0 24 24"><path d="M8 2v7a4 4 0 0 0 8 0V2"/><path d="M12 13v9"/><path d="M9 22h6"/></svg>純正律</button></li>
   </ul>
 </nav>
-<div class="embed" data-page="chords"><iframe data-src="chords/index.html?v=20261028112747" title="Chord Wheel"></iframe></div>
-<div class="embed" data-page="just"><iframe data-src="just/index.html?v=20261028112747" title="コード名検索 × 純正律"></iframe></div>
+<div class="embed" data-page="chords"><iframe data-src="chords/index.html?v=20261028113216" title="Chord Wheel"></iframe></div>
+<div class="embed" data-page="just"><iframe data-src="just/index.html?v=20261028113216" title="コード名検索 × 純正律"></iframe></div>
 <div class="toast" id="toast"></div>
 
 <script>
 (() => {
 'use strict';
 // Bumped by tools/bump-version.sh on every release; must match version.json.
-const APP_VERSION = '20261028112747';
+const APP_VERSION = '20261028113216';
 // GitHub Pages lets browsers reuse files for 10 minutes and home-screen apps keep them longer,
 // so ask for version.json uncached and, if a newer release is out, reopen under a fresh URL.
 async function checkForUpdate() {
