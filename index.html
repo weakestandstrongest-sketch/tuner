@@ -33,7 +33,7 @@ body{background:var(--bg);color:var(--label);
   font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","SF Pro JP","Hiragino Sans","Hiragino Kaku Gothic ProN","Noto Sans JP",system-ui,sans-serif;
   overscroll-behavior:none;-webkit-user-select:none;user-select:none}
 button{font:inherit;color:inherit;border:0;background:none;cursor:pointer;touch-action:manipulation;padding:0}
-.app{height:100%;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;max-width:520px;margin:0 auto;padding:env(safe-area-inset-top) 16px calc(104px + env(safe-area-inset-bottom))}
+.app{height:100%;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;max-width:520px;margin:0 auto;padding:env(safe-area-inset-top) 16px calc(86px + env(safe-area-inset-bottom))}
 
 /* ===== header (TonalEnergy style) ===== */
 .topbar{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:8px;padding:10px 0 8px;font-size:11px;line-height:1.35;color:var(--label-3)}
@@ -196,7 +196,7 @@ input[type=range]::-moz-range-thumb{width:24px;height:24px;border:0;border-radiu
 
 /* ===== tab bar (same as Jam) ===== */
 .tabbar{pointer-events:none;position:fixed;left:0;right:0;bottom:0;z-index:40;display:flex;justify-content:center;
-  padding:0 12px max(10px,env(safe-area-inset-bottom))}
+  padding:0 12px max(6px,calc(env(safe-area-inset-bottom) - 22px))}
 .glass-bar{background:color-mix(in srgb,var(--bg) 58%,transparent);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);
   transform:translateZ(0);will-change:transform;
   box-shadow:0 8px 32px hsl(0 0% 0% / .14),inset 0 0 0 .5px var(--separator-strong),inset 0 1px 0 rgba(255,255,255,.35)}
@@ -219,7 +219,7 @@ input[type=range]::-moz-range-thumb{width:24px;height:24px;border:0;border-radiu
 .embed.active{display:block}
 .embed iframe{display:block;width:100%;height:100%;border:0;background:#000}
 body.embedded .app{display:none}
-.toast{position:fixed;left:50%;bottom:calc(92px + env(safe-area-inset-bottom));transform:translateX(-50%);background:var(--surface-2);
+.toast{position:fixed;left:50%;bottom:calc(80px + env(safe-area-inset-bottom));transform:translateX(-50%);background:var(--surface-2);
   padding:10px 16px;border-radius:14px;font-size:13px;opacity:0;transition:opacity .2s;pointer-events:none;max-width:90%;z-index:50;
   box-shadow:inset 0 0 0 .5px var(--separator-strong),0 8px 30px #000a}
 .toast.show{opacity:1}
