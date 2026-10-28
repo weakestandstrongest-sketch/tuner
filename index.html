@@ -7,6 +7,11 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>Tuner Metronome</title>
+<meta name="apple-mobile-web-app-title" content="Tuner Metronome">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="icon" href="icons/favicon-32.png" sizes="32x32" type="image/png">
+<link rel="manifest" href="manifest.webmanifest">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Roboto+Condensed:wght@700&display=swap" rel="stylesheet">
@@ -410,15 +415,15 @@ body.embedded .app{display:none}
     <li><button data-tab="just"><svg viewBox="0 0 24 24"><path d="M8 2v7a4 4 0 0 0 8 0V2"/><path d="M12 13v9"/><path d="M9 22h6"/></svg>純正律</button></li>
   </ul>
 </nav>
-<div class="embed" data-page="chords"><iframe data-src="chords/index.html?v=20261028112306" title="Chord Wheel"></iframe></div>
-<div class="embed" data-page="just"><iframe data-src="just/index.html?v=20261028112306" title="コード名検索 × 純正律"></iframe></div>
+<div class="embed" data-page="chords"><iframe data-src="chords/index.html?v=20261028112747" title="Chord Wheel"></iframe></div>
+<div class="embed" data-page="just"><iframe data-src="just/index.html?v=20261028112747" title="コード名検索 × 純正律"></iframe></div>
 <div class="toast" id="toast"></div>
 
 <script>
 (() => {
 'use strict';
 // Bumped by tools/bump-version.sh on every release; must match version.json.
-const APP_VERSION = '20261028112306';
+const APP_VERSION = '20261028112747';
 // GitHub Pages lets browsers reuse files for 10 minutes and home-screen apps keep them longer,
 // so ask for version.json uncached and, if a newer release is out, reopen under a fresh URL.
 async function checkForUpdate() {
