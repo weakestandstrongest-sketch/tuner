@@ -275,16 +275,17 @@ body.embedded .app{display:none}
   <div class="name">TUNER METRONOME</div>
 </div>
 <script>
-// Plays once per launch; a tap skips it. It only counts as seen once it has finished, so a reload
-// into a new release that lands mid-animation plays it again instead of cutting to the tuner.
+// Plays on every full page load; a tap skips it. The only load that skips it is a reload into a new
+// release made after the animation had finished (checkForUpdate leaves a one-shot flag for that).
+// iOS home-screen apps can keep sessionStorage across launches, so "seen once" can't be used here.
 (() => {
   const el = document.getElementById('splash');
-  let seen = false;
-  try { seen = !!sessionStorage.getItem('tm-splash'); } catch (e) {}
-  if (seen) { el.classList.add('gone'); return; }
+  let skip = false;
+  try { skip = sessionStorage.getItem('tm-skip-splash') === '1'; sessionStorage.removeItem('tm-skip-splash'); } catch (e) {}
+  if (skip) { el.classList.add('gone'); window.splashDone = true; return; }
   const done = () => {
     if (el.classList.contains('out')) return;
-    try { sessionStorage.setItem('tm-splash', '1'); } catch (e) {}
+    window.splashDone = true;
     el.classList.add('out');
     setTimeout(() => el.classList.add('gone'), 400);
   };
@@ -488,15 +489,15 @@ body.embedded .app{display:none}
     <li><button data-tab="just"><svg viewBox="0 0 24 24"><path d="M8 2v7a4 4 0 0 0 8 0V2"/><path d="M12 13v9"/><path d="M9 22h6"/></svg>純正律</button></li>
   </ul>
 </nav>
-<div class="embed" data-page="chords"><iframe data-src="chords/index.html?v=20261028113450" title="Chord Wheel"></iframe></div>
-<div class="embed" data-page="just"><iframe data-src="just/index.html?v=20261028113450" title="コード名検索 × 純正律"></iframe></div>
+<div class="embed" data-page="chords"><iframe data-src="chords/index.html?v=20261028113850" title="Chord Wheel"></iframe></div>
+<div class="embed" data-page="just"><iframe data-src="just/index.html?v=20261028113850" title="コード名検索 × 純正律"></iframe></div>
 <div class="toast" id="toast"></div>
 
 <script>
 (() => {
 'use strict';
 // Bumped by tools/bump-version.sh on every release; must match version.json.
-const APP_VERSION = '20261028113450';
+const APP_VERSION = '20261028113850';
 // GitHub Pages lets browsers reuse files for 10 minutes and home-screen apps keep them longer,
 // so ask for version.json uncached and, if a newer release is out, reopen under a fresh URL.
 async function checkForUpdate() {
@@ -507,6 +508,8 @@ async function checkForUpdate() {
     const key = 'tm-update-tried-' + v;
     if (sessionStorage.getItem(key)) return; // the CDN may still be catching up; don't loop
     sessionStorage.setItem(key, '1');
+    try { if (window.splashDone) sessionStorage.setItem('tm-skip-splash', '1'); } catch (e) {}
+    document.getElementById('cover').classList.add('on'); // black, not the old screen, until the new release paints
     location.replace(location.pathname + '?v=' + v + location.hash);
   } catch (e) {}
 }
