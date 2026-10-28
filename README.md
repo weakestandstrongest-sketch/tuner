@@ -17,3 +17,7 @@
 
 ## クレジット
 ピアノ音源：Salamander Grand Piano（Alexander Holm, CC BY 3.0）。`chords/samples/piano/LICENSE.txt` を参照。
+
+## 更新の反映
+変更をコミットする前に `sh tools/bump-version.sh` を実行してください。`version.json` とファイル参照の `?v=` が新しい番号になり、
+開いているアプリは次に表示されたときに新しい版へ自動で切り替わります。
