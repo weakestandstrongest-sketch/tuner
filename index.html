@@ -497,15 +497,15 @@ html:not(.ready) .app,html:not(.ready) .tabbar,html:not(.ready) .embed{visibilit
     <li><button data-tab="just"><svg viewBox="0 0 24 24"><path d="M8 2v7a4 4 0 0 0 8 0V2"/><path d="M12 13v9"/><path d="M9 22h6"/></svg>純正律</button></li>
   </ul>
 </nav>
-<div class="embed" data-page="chords"><iframe data-src="chords/index.html?v=20261028114115" title="Chord Wheel"></iframe></div>
-<div class="embed" data-page="just"><iframe data-src="just/index.html?v=20261028114115" title="コード名検索 × 純正律"></iframe></div>
+<div class="embed" data-page="chords"><iframe data-src="chords/index.html?v=20261028114935" title="Chord Wheel"></iframe></div>
+<div class="embed" data-page="just"><iframe data-src="just/index.html?v=20261028114935" title="コード名検索 × 純正律"></iframe></div>
 <div class="toast" id="toast"></div>
 
 <script>
 (() => {
 'use strict';
 // Bumped by tools/bump-version.sh on every release; must match version.json.
-const APP_VERSION = '20261028114115';
+const APP_VERSION = '20261028114935';
 // GitHub Pages lets browsers reuse files for 10 minutes and home-screen apps keep them longer,
 // so ask for version.json uncached and, if a newer release is out, reopen under a fresh URL.
 async function checkForUpdate() {
@@ -513,9 +513,10 @@ async function checkForUpdate() {
     const r = await fetch('version.json?t=' + Date.now(), { cache: 'no-store' });
     const { v } = await r.json();
     if (!v || v === APP_VERSION) return;
-    const key = 'tm-update-tried-' + v;
-    if (sessionStorage.getItem(key)) return; // the CDN may still be catching up; don't loop
-    sessionStorage.setItem(key, '1');
+    // the CDN may still be catching up and serve the old page again: retry at most once a minute, never loop
+    const key = 'tm-update-tried-' + v, last = +(sessionStorage.getItem(key) || 0);
+    if (Date.now() - last < 60000) return;
+    sessionStorage.setItem(key, String(Date.now()));
     const go = () => {
       try { sessionStorage.setItem('tm-skip-splash', '1'); } catch (e) {}
       document.getElementById('cover').classList.add('on'); // black, not the old screen, until the new release paints
@@ -560,8 +561,12 @@ const tempOff = n => TEMPS[S.temperament].off[mod12(n - S.key)];
 
 // ---------- audio ----------
 let ctx = null, master = null;
+// iOS 16.4+: 'playback' keeps the metronome and drone audible with the silent switch on;
+// while the mic is open the session must allow recording too.
+function audioSession(type) { try { if (navigator.audioSession) navigator.audioSession.type = type; } catch (e) {} }
 function ac() {
   if (!ctx) {
+    if (!tuner.on) audioSession('playback');
     ctx = new (window.AudioContext || window.webkitAudioContext)({ latencyHint: 'interactive' });
     master = ctx.createGain(); master.connect(ctx.destination);
   }
@@ -600,12 +605,14 @@ function detectPitch(b, sr) {
   if (rms < minRms()) return -1;
   const tauMin = Math.floor(sr / 2200), tauMax = Math.min(Math.floor(sr / 45), N >> 1);
   const W = N - tauMax;
-  const d = tuner.yin || (tuner.yin = new Float32Array(tauMax + 1));
+  if (!tuner.yin || tuner.yin.length !== tauMax + 1) { tuner.yin = new Float32Array(tauMax + 1); tuner.raw = new Float32Array(tauMax + 1); }
+  const d = tuner.yin, raw = tuner.raw;
   d[0] = 1;
   let run = 0;
   for (let t = 1; t <= tauMax; t++) {
     let s = 0;
     for (let i = 0; i < W; i++) { const x = b[i] - b[i + t]; s += x * x; }
+    raw[t] = s;
     run += s;
     d[t] = run ? s * t / run : 1;
   }
@@ -614,9 +621,11 @@ function detectPitch(b, sr) {
     if (d[t] < 0.15) { while (t + 1 <= tauMax && d[t + 1] < d[t]) t++; tau = t; break; }
   }
   if (tau < 0) return -1;
+  // refine the lag on the raw difference function (as in the YIN paper): interpolating the normalised
+  // curve skews the result when the period is only a few dozen samples, i.e. at high pitches
   let bt = tau;
   if (tau > 1 && tau < tauMax) {
-    const s0 = d[tau - 1], s1 = d[tau], s2 = d[tau + 1], den = 2 * (2 * s1 - s2 - s0);
+    const s0 = raw[tau - 1], s1 = raw[tau], s2 = raw[tau + 1], den = 2 * (2 * s1 - s2 - s0);
     if (den) bt = tau + (s2 - s0) / den;
   }
   return sr / bt;
@@ -657,6 +666,7 @@ async function startTuner() {
   try {
     let stream;
     try {
+      audioSession('play-and-record');
       stream = await navigator.mediaDevices.getUserMedia({
         audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false } });
     } catch (e) {
@@ -684,14 +694,32 @@ async function startTuner() {
     tuner.stream = stream; tuner.src = src;
     tuner.analyser = an; tuner.buf = new Float32Array(an.fftSize); tuner.yin = null;
     tuner.on = true;
+    // iOS ends the mic when the app is interrupted (a call, Siri, another app recording): offer to restart
+    stream.getAudioTracks().forEach(t => t.addEventListener('ended', () => stopTuner('マイクが止まりました。もう一度押すと再開します')));
     $('#start-overlay').style.display = 'none';
     keepAwake(true);
   } catch (e) {
+    if (!tuner.on) audioSession('playback');
     toast(micErrorMessage(e), 9000);
   } finally {
-    btn.disabled = false; btn.textContent = '🎤 マイクを開始';
+    btn.disabled = false; if (!tuner.on) btn.textContent = '🎤 マイクを開始';
   }
 }
+
+function stopTuner(msg) {
+  if (!tuner.on) return;
+  tuner.on = false;
+  try { tuner.stream.getTracks().forEach(t => t.stop()); } catch (e) {}
+  try { tuner.src.disconnect(); } catch (e) {}
+  tuner.freqs = []; tuner.lastT = 0; tuner.note = null; tuner.susNote = null;
+  audioSession('playback');
+  $('#start-overlay').style.display = '';
+  $('#mic-btn').textContent = '🎤 マイクを再開';
+  if (msg) toast(msg, 5000);
+  keepAwake(false);
+}
+// release the mic when the app goes to the background (iOS would cut it anyway); one tap brings it back
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') stopTuner(); });
 
 // ---------- tuner UI ----------
 const SVGNS = 'http://www.w3.org/2000/svg';
@@ -965,6 +993,8 @@ function playClick(time, level) {
   }
 }
 function schedule() {
+  // timers stall while the app is in the background: skip the missed clicks instead of firing them in a burst
+  if (M.next < ctx.currentTime - 0.05) { M.next = ctx.currentTime + 0.05; M.sub = 0; M.queue = []; }
   while (M.next < ctx.currentTime + 0.12) {
     const sub = SUBS[S.sub], acc = S.accents[M.beat] ?? 1;
     let level = M.sub === 0 ? acc : (acc === 0 ? 0 : 0.5);
