@@ -424,7 +424,11 @@ html:not(.ready) .app,html:not(.ready) .tabbar,html:not(.ready) .embed{visibilit
       <button class="ytap" id="tap">TAP</button>
       <p class="note-small" style="text-align:center">曲に合わせて 2 回以上タップすると、テンポを設定します</p>
     </div>
-    <div class="ypanel sel" data-p="beat"><div class="tiles" id="sigs"></div></div>
+    <div class="ypanel sel" data-p="beat">
+      <div class="tiles" id="sigs"></div>
+      <h2 style="margin:6px 2px 0">アクセント</h2>
+      <div class="tiles" id="acc-presets"></div>
+    </div>
     <div class="ypanel" data-p="rhythm"><div class="tiles wide" id="subs"></div></div>
     <div class="ypanel" data-p="sound">
       <div class="tiles wide" id="sounds"></div>
@@ -476,15 +480,15 @@ html:not(.ready) .app,html:not(.ready) .tabbar,html:not(.ready) .embed{visibilit
     <li><button data-tab="just"><svg viewBox="0 0 24 24"><path d="M8 2v7a4 4 0 0 0 8 0V2"/><path d="M12 13v9"/><path d="M9 22h6"/></svg>純正律</button></li>
   </ul>
 </nav>
-<div class="embed" data-page="chords"><iframe data-src="chords/index.html?v=20261118021219" title="Chord Wheel"></iframe></div>
-<div class="embed" data-page="just"><iframe data-src="just/index.html?v=20261118021219" title="コード名検索 × 純正律"></iframe></div>
+<div class="embed" data-page="chords"><iframe data-src="chords/index.html?v=20261118021550" title="Chord Wheel"></iframe></div>
+<div class="embed" data-page="just"><iframe data-src="just/index.html?v=20261118021550" title="コード名検索 × 純正律"></iframe></div>
 <div class="toast" id="toast"></div>
 
 <script>
 (() => {
 'use strict';
 // Bumped by tools/bump-version.sh on every release; must match version.json.
-const APP_VERSION = '20261118021219';
+const APP_VERSION = '20261118021550';
 // GitHub Pages lets browsers reuse files for 10 minutes and home-screen apps keep them longer,
 // so ask for version.json uncached and, if a newer release is out, reopen under a fresh URL.
 async function checkForUpdate() {
@@ -955,6 +959,26 @@ if (!SOUNDS.some(s => s[0] === S.sound)) S.sound = 'beep';
 const M = { playing: false, next: 0, beat: 0, sub: 0, bar: 0, timer: null, queue: [] };
 let noiseBuf = null;
 
+// accent presets; "2・4" is the jazz click: only the backbeats sound (2 and 4, or every second beat)
+const ACCENT_PRESETS = [
+  ['std', '標準', '1拍目が強'],
+  ['24', '2・4', 'ジャズ'],
+  ['one', '1拍目', 'ほかは無音'],
+  ['flat', '均一', '全部同じ'],
+];
+function presetAccents(kind, beats, unit) {
+  if (kind === '24') return Array.from({ length: beats }, (_, i) => (beats > 1 && i % 2 === 1 ? 3 : 0));
+  if (kind === 'one') return Array.from({ length: beats }, (_, i) => (i === 0 ? 3 : 0));
+  if (kind === 'flat') return Array(beats).fill(1);
+  return defaultAccents(beats, unit);
+}
+function currentPreset() {
+  return (ACCENT_PRESETS.find(([k]) => presetAccents(k, S.beats, S.unit).join() === S.accents.join()) || [''])[0];
+}
+function renderAccentPresets() {
+  const cur = currentPreset();
+  [...$('#acc-presets').children].forEach(b => b.classList.toggle('sel', b.dataset.k === cur));
+}
 function defaultAccents(beats, unit) {
   const a = Array(beats).fill(1);
   if (unit === 8 && beats % 3 === 0 && beats > 3) for (let i = 3; i < beats; i += 3) a[i] = 2;
@@ -1084,6 +1108,7 @@ function renderBeats() {
     el.appendChild(b);
   });
   $('#sig').textContent = `${S.beats}/${S.unit}`;
+  if ($('#acc-presets').children.length) renderAccentPresets();
 }
 function metroFrame() {
   if (!M.playing || !ctx) return;
@@ -1238,10 +1263,18 @@ function init() {
   });
   chips($('#sigs'), SIGS.map(([b, u]) => [`${b}/${u}`, `${b}/${u}`]), v => v === `${S.beats}/${S.unit}`, v => {
     const [b, u] = v.split('/').map(Number);
-    S.beats = b; S.unit = u; S.accents = defaultAccents(b, u);
+    const style = currentPreset() || 'std';
+    S.beats = b; S.unit = u; S.accents = presetAccents(style, b, u);
     if (M.beat >= b) M.beat = 0;
     renderBeats();
   }, 'tile');
+  ACCENT_PRESETS.forEach(([k, label, sub]) => {
+    const b = document.createElement('button'); b.className = 'tile'; b.dataset.k = k;
+    b.innerHTML = `${label}<small>${sub}</small>`;
+    b.onclick = () => { S.accents = presetAccents(k, S.beats, S.unit); save(); renderBeats(); };
+    $('#acc-presets').appendChild(b);
+  });
+  renderAccentPresets();
   chips($('#subs'), SUBS.map((s, i) => [i, s.n, s.d]), v => v === S.sub, v => { S.sub = v; M.sub = 0; renderRhythm(); }, 'tile');
   renderRhythm();
   chips($('#sounds'), SOUNDS.map(([k, ja, en]) => [k, en, ja]), v => v === S.sound, v => {
