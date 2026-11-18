@@ -127,3 +127,8 @@ body {
 .about-box { padding: 0 16px; }
 .about-box summary { padding: 16px 0; }
 .credits { margin-top: 12px; }
+
+/* long chord names (C(omit5), Em(omit5)/C …): own row, one line, shrunk to fit by embed.js */
+.stage { grid-template-columns: 1fr; }
+.stage .chord-name { grid-column: 1 / -1; white-space: nowrap; overflow: hidden; }
+.stage .stage-ratio { grid-column: 1 / -1; text-align: left; margin: 2px 0 0; }

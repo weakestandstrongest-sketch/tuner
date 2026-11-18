@@ -52,3 +52,18 @@
   new MutationObserver(paintPitch).observe($('pill-a4'), { childList: true, characterData: true, subtree: true });
   paintPitch(); pitch.onclick = toSettings; quick.append(pitch);
 })();
+
+// shrink the chord name until it fits on one line
+(() => {
+  const name = document.getElementById('chord-name');
+  const fit = () => {
+    name.style.fontSize = '';
+    const max = parseFloat(getComputedStyle(name).fontSize);
+    let size = max;
+    while (name.scrollWidth > name.clientWidth && size > 24) { size -= 2; name.style.fontSize = size + 'px'; }
+  };
+  new MutationObserver(fit).observe(name, { childList: true, characterData: true, subtree: true });
+  window.addEventListener('resize', fit);
+  if (document.fonts) document.fonts.ready.then(fit);
+  fit();
+})();
