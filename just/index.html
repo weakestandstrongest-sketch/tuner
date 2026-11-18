@@ -16,8 +16,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:opsz,wght@6..96,400..700&family=DM+Mono:wght@400;500&display=swap">
-  <link rel="stylesheet" href="css/style.css?v=20261118021550">
-  <link rel="stylesheet" href="embed.css?v=20261118021550">
+  <link rel="stylesheet" href="css/style.css?v=20261118030813">
+  <link rel="stylesheet" href="embed.css?v=20261118030813">
 </head>
 <body>
   <main class="wrap">
@@ -40,6 +40,24 @@
       </div>
       <p class="hint">低い音から順に入力。例：ソ♭シド・れふぁ#ら・AbCEb・C3 E4 G4</p>
       <div id="chips" class="chips" aria-live="polite"></div>
+
+      <details class="block keyboard-box" id="keyboard-box">
+        <summary>
+          <span>鍵盤で入力</span>
+          <span class="summary-sub">タップで追加・もう一度で削除</span>
+        </summary>
+        <div class="keyboard-tools">
+          <span>黒鍵の表記</span>
+          <div class="seg small" id="spelling-seg">
+            <button data-value="sharp">♯</button>
+            <button data-value="flat">♭</button>
+          </div>
+          <button id="kb-clear" class="btn-ghost">全消去</button>
+        </div>
+        <div class="keyboard-scroll" id="keyboard-scroll">
+          <div class="keyboard" id="keyboard"></div>
+        </div>
+      </details>
 
       <section class="stage" id="stage" aria-live="polite">
         <div class="stage-label" id="stage-label"></div>
@@ -66,23 +84,6 @@
         <p class="hint" id="cand-note"></p>
       </section>
 
-      <details class="block keyboard-box" id="keyboard-box">
-        <summary>
-          <span>鍵盤で入力</span>
-          <span class="summary-sub">タップで追加・もう一度で削除</span>
-        </summary>
-        <div class="keyboard-tools">
-          <span>黒鍵の表記</span>
-          <div class="seg small" id="spelling-seg">
-            <button data-value="sharp">♯</button>
-            <button data-value="flat">♭</button>
-          </div>
-          <button id="kb-clear" class="btn-ghost">全消去</button>
-        </div>
-        <div class="keyboard-scroll" id="keyboard-scroll">
-          <div class="keyboard" id="keyboard"></div>
-        </div>
-      </details>
 
       <section class="block" id="ji" hidden>
         <div class="block-head">
@@ -133,6 +134,8 @@
 
 
     <article class="about">
+      <details class="about-box">
+      <summary>純正律の解説<span>このアプリについて・純正律の見方・0セントの基準・入力のしかた</span></summary>
       <h2>このアプリについて</h2>
       <p>与えられた構成音からコード名を判定し、その和音を<strong>純正律</strong>で響かせるには各音を平均律から何セント動かせばよいかを、チューナー感覚で確かめるためのツールです。耳コピや作曲・編曲でのコード判定に加えて、合唱・弦楽器・管楽器のハーモニー練習や、純正律そのものの探求に使えます。</p>
 
@@ -160,14 +163,15 @@
         <li>英字：C D E F G A B。大文字を含むときは英字の直後の小文字 b をフラットとして扱います（AbCEb）。小文字だけのとき、b は音名の B（シ）です（gbd = G B D）。</li>
         <li>英字の後ろの数字でオクターブを指定できます（C4 = 中央のド）。省略すると下から順に積み重ねます。</li>
       </ul>
-      <p class="hint home-hint">Safari の共有ボタン →「ホーム画面に追加」で、アプリのようにオフラインでも使えます。</p>
+      </details>
     </article>
 
     <footer class="credits">ピアノ音源：Salamander Grand Piano V3 — Alexander Holm（CC BY 3.0）</footer>
   </main>
 
-  <script src="js/engine.js?v=20261118021550"></script>
-  <script src="js/audio.js?v=20261118021550"></script>
-  <script src="js/app.js?v=20261118021550"></script>
+  <script src="js/engine.js?v=20261118030813"></script>
+  <script src="js/audio.js?v=20261118030813"></script>
+  <script src="js/app.js?v=20261118030813"></script>
+  <script src="embed.js?v=20261118030813"></script>
 </body>
 </html>

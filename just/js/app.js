@@ -252,7 +252,7 @@
       }, svg('line', { x1: cx, y1: cy - 14, x2: cx, y2: cy - (R - 16) })));
     });
     needles.forEach((n) => {
-      const [x, y] = pt(n.offset, R - 34 - n.level * 22);
+      const [x, y] = pt(n.offset, R - 34 - n.level * 27);
       g.append(svg('g', { class: 'g-label ' + centsClass(n.offset) },
         svg('circle', { cx: x, cy: y, r: 11 }),
         svg('text', { x, y }, n.name)));
