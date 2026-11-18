@@ -12,19 +12,18 @@ body {
 }
 .wrap { padding-top: 0; }
 
-/* header: gear · eyebrow · pitch, then the one-line title */
-.masthead { padding-top: 14px; padding-bottom: 6px; }
-.mast-row { gap: 10px; }
-.gear { width: 36px; height: 36px; flex: 0 0 auto; border: 0; border-radius: 50%; background: var(--surface-2); color: #b0b0b8;
+/* header: a small title on the left like the metronome's label, pitch and gear on the right */
+.masthead { padding-top: 10px; padding-bottom: 0; }
+.mast-row { gap: 10px; align-items: center; }
+.eyebrow, .mast-waves, .mast-lead { display: none; }
+.mast-title { flex: 1; margin: 0; font-family: var(--f-display); font-weight: 500; font-size: 22px; line-height: 1; letter-spacing: 0; white-space: nowrap; }
+.mast-title em { font-style: italic; font-weight: 600; padding-right: .04em; }
+.pitch-pill { display: none; } /* the pitch is already on the quick chip under the input */
+.pitch-pill b { color: var(--gold-hi); }
+.gear { width: 40px; height: 40px; flex: 0 0 auto; border: 0; border-radius: 50%; background: var(--surface-2); color: #b0b0b8;
   display: grid; place-items: center; transition: transform .15s; }
 .gear:active { transform: scale(.9); }
 .gear svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-.eyebrow { flex: 1; color: var(--gold); }
-.pitch-pill { border: 0; background: transparent; padding: 6px 0; color: #b0b0b8; }
-.pitch-pill b { color: var(--gold-hi); }
-.mast-title { font-family: var(--f-display); font-weight: 500; letter-spacing: -0.01em; font-size: clamp(2rem, 11vw, 3.2rem); line-height: 1.05; white-space: nowrap; margin-top: 10px; }
-.mast-title em { font-style: italic; font-weight: 600; padding-right: .06em; }
-.mast-waves, .mast-lead { display: none; }
 
 /* input: pill field + keyboard button, then quick setting chips */
 .field-row { display: flex; gap: 8px; align-items: center; margin-top: 12px; }
