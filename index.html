@@ -14,7 +14,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Roboto+Condensed:wght@700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
 :root{
   /* Jam dark palette */
@@ -28,7 +28,7 @@
   --y-bg:#232323; --y-base:#1b1b1b; --y-btn:#2b2b2b; --y-disc:#c6c6c6;
   --y-purple:#4a2276; --y-purple-on:#5b2c90; --y-lav:#cbc1dd; --y-accent:#7d4fd1;
   --cond:"Barlow Condensed","Arial Narrow",-apple-system,sans-serif;
-  --din:"DIN Condensed","DIN Alternate","Roboto Condensed","Arial Narrow",sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,"SF Mono",Menlo,monospace;
   color-scheme:dark;
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -106,76 +106,58 @@ h2{font-size:12px;font-weight:600;color:var(--label-3);margin:4px 2px -4px;lette
 .info b{color:var(--label);font-weight:600}
 canvas#hist{width:100%;height:90px;display:block;border-radius:14px;background:var(--surface);box-shadow:inset 0 0 0 .5px var(--separator)}
 
-/* ===== metronome (YAMAHA style) ===== */
-body.ymode{background:var(--y-bg)}
+/* ===== metronome (pad / instrument style) ===== */
 body.ymode .topbar{display:none}
-.y-title{text-align:center;font-family:var(--din);font-size:30px;font-weight:700;color:#d4d4d4;padding:16px 0 0;line-height:1}
-.ydial{position:relative;width:100%;max-width:400px;margin:0 auto;aspect-ratio:1;touch-action:none;container-type:inline-size}
-.ybase{position:absolute;inset:0;border-radius:50%;background:var(--y-base);box-shadow:inset 0 0 0 1px #262626,0 1px 0 #2b2b2b}
-.yblack{position:absolute;inset:16.3%;border-radius:50%;background:#000}
-.disc{position:absolute;inset:23.4%;border-radius:50%}
-.disc svg{position:absolute;inset:0;width:100%;height:100%;display:block}
-.disc .dn{font-family:var(--din);font-weight:700;fill:#1b1b1b}
-.disc .dl{font-family:var(--din);font-weight:700;font-size:25px;fill:#8a8a8a}
-.disc .tempo-hit{position:absolute;left:0;right:0;top:0;height:65.6%}
-.disc .go{position:absolute;left:0;right:0;bottom:0;height:34.4%}
-#go-bg{fill:var(--y-purple);transition:fill .15s}
-.disc .go:active~svg #go-bg,.disc.on #go-bg{fill:var(--y-purple-on)}
-.lamp{position:absolute;left:79.3%;top:79.3%;width:12.7%;aspect-ratio:1;transform:translate(-50%,-50%);border-radius:50%;cursor:grab;touch-action:none;
-  background:#111;border:1.5cqw solid #2b2b2b;transition:background .05s,box-shadow .05s,border-color .05s}
-.lamp.on{background:var(--y-accent);border-color:#3a2a55;box-shadow:0 0 5cqw #7d4fd1aa}
-.lamp.on.acc{background:#d9c7ff;box-shadow:0 0 7cqw #b28cffcc}
-.ymenu{position:absolute;right:1.5%;top:2.5%;width:11.5%;aspect-ratio:1;border-radius:50%;background:var(--y-btn);z-index:2;display:grid;place-items:center;
-  box-shadow:0 1.2cqw 1.8cqw rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.05)}
-.ymenu:active{transform:scale(.92)}
-.ymenu svg{width:46%;height:46%;fill:none;stroke:#9a9a9a;stroke-width:2.2;stroke-linecap:round}
-/* beat flash: the black ring glows magenta and the disc picks up a pink tint, then fades */
-.yblack{transition:box-shadow .32s ease-out}
-.ydial.flash .yblack{box-shadow:inset 0 0 0 2.4cqw #c8126a,0 0 5cqw #e0157a88;transition:none}
-.ydial.flash.acc .yblack{box-shadow:inset 0 0 0 3.2cqw #e8197c,0 0 8cqw #ff2a8fb0}
-.disc::after{content:"";position:absolute;inset:0;border-radius:50%;background:#e0157a;opacity:0;pointer-events:none;transition:opacity .32s ease-out}
-.ydial.flash .disc::after{opacity:.26;transition:none}
-.ydial.flash.acc .disc::after{opacity:.36}
-.ybtns{position:relative;width:100%;max-width:440px;margin:2% auto 0;aspect-ratio:830/300;container-type:inline-size}
-.yb{position:absolute;width:20.5%;aspect-ratio:1;border-radius:50%;background:var(--y-btn);color:#d8d8d8;font-family:var(--din);font-weight:700;font-size:7.2cqw;line-height:1;
-  display:grid;place-items:center;padding-top:.6cqw;box-shadow:0 1.4cqw 2cqw rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.05);transition:transform .1s,background .1s}
-.yb:active{transform:scale(.93);background:#353535}
-.yb.a{left:1%;top:0}.yb.b{left:26.4%;top:35%}.yb.c{left:53.1%;top:35%}.yb.d{left:78.5%;top:0}
-.yb.sym{font-family:-apple-system,"Helvetica Neue",sans-serif;font-weight:400;font-size:8cqw;padding:0 0 .8cqw}
-.ypick{display:grid;grid-template-columns:14.5% 1fr 14.5%;gap:5.5%;align-items:center;width:100%;max-width:440px;margin:2% auto 0;container-type:inline-size}
-.ypick .yb{position:static;width:100%;padding:0}
-.ypick .yb svg{width:42%;height:42%}
-.ypill{height:13cqw;border-radius:6.5cqw;background:#181818;box-shadow:inset 0 .6cqw 1.6cqw rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;gap:2.5cqw;
-  font-family:var(--din);font-weight:700;font-size:6cqw;color:#cfcfcf;padding-top:.5cqw;white-space:nowrap}
-.ypill small{font-family:-apple-system,"Hiragino Sans",sans-serif;font-size:3.6cqw;font-weight:600;color:#9a9a9a}
-.ynav{display:flex;justify-content:space-around;margin:10px 0 2px}
-.ynav button{display:flex;flex-direction:column;align-items:center;gap:5px;min-width:70px;color:#8c8c8c;font-size:11px;transition:color .15s}
-.ynav button.sel{color:var(--y-accent)}
-.ynav svg{width:32px;height:32px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
-.ynav .sigicon{font-family:var(--din);font-weight:700;font-size:36px;line-height:32px;height:32px;padding-top:4px}
-.ypanel{display:none;flex-direction:column;gap:10px;background:var(--y-base);border-radius:20px;padding:14px;box-shadow:inset 0 0 0 1px #262626}
+.ehdr{display:flex;justify-content:space-between;align-items:center;padding:4px 2px 0}
+.eyebrow{font-size:11px;letter-spacing:.3em;color:var(--label-3);font-weight:600}
+.round{width:40px;height:40px;border-radius:50%;background:var(--surface-2);display:grid;place-items:center;color:var(--label-2)}
+.round svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round}
+.etop{display:flex;justify-content:space-between;align-items:flex-end;gap:10px;margin-top:6px}
+.ebpm{font-family:var(--mono);font-weight:700;font-size:88px;letter-spacing:-.06em;line-height:.85;text-align:left;font-variant-numeric:tabular-nums;white-space:nowrap}
+.ebpm .edec{font-size:28px;color:var(--label-4);letter-spacing:-.02em;margin-left:2px}
+.emeta{display:flex;flex-direction:column;align-items:flex-end;gap:5px;font-family:var(--mono);font-size:12px;color:var(--label-3)}
+.emeta b{color:var(--label);font-weight:500;margin-left:6px}
+.etname{font-family:var(--mono);font-size:11px;letter-spacing:.24em;color:var(--danger);margin-top:-6px}
+.esteps{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.es{height:40px;border-radius:12px;background:var(--surface);box-shadow:inset 0 0 0 1px #222226;font-family:var(--mono);font-size:14px;font-weight:500;color:var(--label-2)}
+.es:active{background:var(--surface-3)}
+.pads{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.pad{aspect-ratio:1;border-radius:18px;background:#141416;box-shadow:inset 0 0 0 1px #222226;position:relative;transition:background .15s,box-shadow .15s}
+.pad .n{position:absolute;right:10px;bottom:8px;font-family:var(--mono);font-size:11px;color:var(--label-4)}
+.pad .lv{position:absolute;left:10px;top:10px;display:flex;gap:3px}
+.pad .lv i{width:8px;height:8px;border-radius:50%;background:var(--danger)}
+.pad.mute{opacity:.45}
+.pad.mute::after{content:"";position:absolute;left:22%;right:22%;top:50%;height:2px;background:var(--label-4);transform:rotate(-35deg)}
+.pad.cur{background:#f5f5f7;box-shadow:0 0 28px rgba(255,255,255,.35);transition:none}
+.pad.cur.a3{background:var(--danger);box-shadow:0 0 30px rgba(255,90,95,.55)}
+.pad.cur .n{color:#555}.pad.cur.a3 .n{color:#fff}.pad.cur.a3 .lv i{background:#fff}
+.knobs{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;justify-items:center;margin-top:4px}
+.kwrap{display:flex;flex-direction:column;align-items:center;gap:10px}
+.kn{width:92px;height:92px;border-radius:50%;background:radial-gradient(circle at 40% 35%,#2e2e33,#0d0d0f);
+  box-shadow:0 8px 18px #000,inset 0 1px 0 rgba(255,255,255,.08),0 0 0 6px #0b0b0d,0 0 0 7px #222226;position:relative;touch-action:none;cursor:grab}
+.kn i{position:absolute;left:50%;top:9px;width:4px;height:22px;margin-left:-2px;border-radius:2px;background:var(--danger);transform-origin:50% 37px}
+.kl{font-family:var(--mono);font-size:10px;letter-spacing:.24em;color:var(--label-3)}
+.play{width:92px;height:92px;border-radius:26px;background:var(--danger);display:grid;place-items:center;box-shadow:0 10px 30px rgba(255,90,95,.35);transition:transform .1s,background .15s}
+.play:active{transform:scale(.95)}
+.play.on{background:#f5f5f7;box-shadow:0 10px 30px rgba(255,255,255,.25)}
+.play svg{width:32px;height:32px}
+.echips{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;margin-top:4px}
+.echips::-webkit-scrollbar{display:none}
+.echips button{flex:1 0 auto;height:38px;padding:0 14px;border-radius:12px;background:var(--surface);box-shadow:inset 0 0 0 1px #222226;font-family:var(--mono);font-size:12px;font-weight:500;letter-spacing:.08em;color:var(--label-2)}
+.echips button.sel{background:#f5f5f7;color:#000}
+.ypanel{display:none;flex-direction:column;gap:10px;background:var(--surface);border-radius:20px;padding:14px;box-shadow:inset 0 0 0 1px #222226}
 .ypanel.sel{display:flex}
 .ypanel .card{background:transparent;box-shadow:none;padding:4px 2px}
-.ytap{width:52%;aspect-ratio:1;margin:6px auto;border-radius:50%;background:var(--y-btn);color:#d8d8d8;font-family:var(--din);font-weight:700;font-size:44px;padding-top:6px;
-  box-shadow:0 10px 18px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.05);transition:transform .08s,background .08s}
-.ytap:active{transform:scale(.95);background:var(--y-purple);color:var(--y-lav)}
-.beats{display:flex;gap:6px;justify-content:center;flex-wrap:wrap}
-.beat{width:36px;display:flex;flex-direction:column-reverse;gap:3px;padding:5px 5px 4px;border-radius:10px;background:var(--y-btn);transition:background .08s}
-.beat i{height:7px;border-radius:2px;background:#3a3a3a}
-.beat i.f{background:var(--y-accent)}
-.beat.cur{background:#3d3d3d}
-.beat.cur i.f{background:#d9c7ff}
-.beat .n{font-family:var(--din);font-weight:700;font-size:14px;color:#8c8c8c;text-align:center;font-style:normal;padding-top:2px}
+.ytap{width:52%;aspect-ratio:1;margin:6px auto;border-radius:28px;background:#141416;box-shadow:inset 0 0 0 1px #2a2a2e;font-family:var(--mono);font-weight:700;font-size:28px;letter-spacing:.2em;color:var(--label);transition:background .08s,color .08s}
+.ytap:active{background:#f5f5f7;color:#000}
 .tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
 .tiles.wide{grid-template-columns:repeat(3,1fr)}
-.tile{height:54px;border-radius:14px;background:var(--y-btn);color:#d8d8d8;font-family:var(--din);font-weight:700;font-size:26px;line-height:1;padding-top:4px;
-  box-shadow:0 4px 8px rgba(0,0,0,.35);transition:transform .12s,background .12s}
+.tile{height:54px;border-radius:14px;background:#141416;box-shadow:inset 0 0 0 1px #222226;color:var(--label);font-family:var(--mono);font-weight:600;font-size:17px;line-height:1.1;transition:transform .12s}
 .tile:active{transform:scale(.95)}
-.tile small{display:block;font-family:-apple-system,"Hiragino Sans",sans-serif;font-size:10px;font-weight:600;color:#8c8c8c;margin-top:2px}
-.tile.sel{background:var(--y-purple);color:var(--y-lav)}
-.tile.sel small{color:var(--y-lav)}
-body.ymode input[type=range]::-webkit-slider-runnable-track{background:#3a3a3a}
-body.ymode .tog input:checked+span{background:var(--y-accent)}
+.tile small{display:block;font-family:-apple-system,"Hiragino Sans",sans-serif;font-size:10px;font-weight:600;color:var(--label-3);margin-top:3px}
+.tile.sel{background:#f5f5f7;color:#000}
+.tile.sel small{color:#555}
+body.ymode .tog input:checked+span{background:var(--danger)}
 
 /* ===== shared controls ===== */
 .row{display:flex;gap:8px;align-items:center}
@@ -410,61 +392,44 @@ html:not(.ready) .app,html:not(.ready) .tabbar,html:not(.ready) .embed{visibilit
 
   <!-- METRONOME -->
   <section class="page" data-page="metro">
-    <div class="y-title">METRONOME</div>
-    <div class="ydial" id="mdial">
-      <button class="ymenu" id="ymenu" aria-label="設定"><svg viewBox="0 0 24 24"><path d="M5 7h14M5 12h14M5 17h14"/></svg></button>
-      <div class="ybase"></div>
-      <div class="yblack"></div>
-      <div class="disc" id="mdisc">
-        <button class="tempo-hit" id="tempo-num" aria-label="テンポを入力"></button>
-        <button class="go" id="go" aria-label="スタート / ストップ"></button>
-        <svg viewBox="0 0 442 442" aria-hidden="true" style="pointer-events:none">
-          <defs><clipPath id="disc-clip"><circle cx="221" cy="221" r="221"/></clipPath></defs>
-          <g clip-path="url(#disc-clip)">
-            <rect width="442" height="291" style="fill:var(--y-disc)"/>
-            <rect y="290" width="442" height="152" id="go-bg"/>
-          </g>
-          <text x="96" y="98" class="dl">BEAT</text>
-          <text x="228" y="98" text-anchor="middle" class="dn" font-size="80" id="sig">4/4</text>
-          <line x1="56" y1="122" x2="386" y2="122" stroke="#8e8e8e" stroke-width="2"/>
-          <circle cx="54" cy="122" r="3.5" fill="#8e8e8e"/><circle cx="388" cy="122" r="3.5" fill="#8e8e8e"/>
-          <text x="298" y="177" class="dl" id="t-lbl">TEMPO</text>
-          <text x="221" y="255" text-anchor="middle" class="dn" id="t-num"><tspan font-size="141" id="t-int">100</tspan><tspan font-size="99" fill="#7a7a7a" id="t-dec">.00</tspan></text>
-          <text x="221" y="385" text-anchor="middle" class="dn" font-size="70" style="fill:var(--y-lav)" id="go-txt">START</text>
-        </svg>
+    <div class="ehdr"><span class="eyebrow">METRONOME</span>
+      <button class="round" id="ymenu" aria-label="設定"><svg viewBox="0 0 24 24"><path d="M5 7h14M5 12h14M5 17h14"/></svg></button></div>
+    <div class="etop">
+      <button class="ebpm" id="tempo-num" aria-label="テンポを入力"><span id="t-int">100</span><span class="edec" id="t-dec">.00</span></button>
+      <div class="emeta">
+        <button data-p="beat">SIG<b id="sig">4/4</b></button>
+        <button data-p="rhythm">DIV<b id="rh-name">♩</b></button>
+        <button data-p="sound">SND<b id="snd-name">PULSE</b></button>
       </div>
-      <div class="lamp" id="lamp"></div>
     </div>
-    <div class="ybtns">
-      <button class="yb a" data-d="-10">−10</button>
-      <button class="yb b sym" data-d="-1" aria-label="−1">−</button>
-      <button class="yb c sym" data-d="1" aria-label="+1">+</button>
-      <button class="yb d" data-d="10">+10</button>
+    <div class="etname" id="tname">ANDANTE</div>
+    <div class="esteps">
+      <button class="es" data-d="-10">−10</button><button class="es" data-d="-1">−1</button>
+      <button class="es" data-d="1">+1</button><button class="es" data-d="10">+10</button>
     </div>
-    <div class="ypick">
-      <button class="yb" id="rh-prev" aria-label="前のリズム"><svg viewBox="0 0 24 24" fill="none" stroke="#d8d8d8" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="m15 5-7 7 7 7"/></svg></button>
-      <div class="ypill" id="rh-name"></div>
-      <button class="yb" id="rh-next" aria-label="次のリズム"><svg viewBox="0 0 24 24" fill="none" stroke="#d8d8d8" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="m9 5 7 7-7 7"/></svg></button>
+    <div class="pads" id="beats"></div>
+    <div class="knobs">
+      <div class="kwrap"><div class="kn" id="k-tempo" role="slider" aria-label="テンポ"><i></i></div><span class="kl">TEMPO</span></div>
+      <div class="kwrap"><button class="play" id="go" aria-label="スタート / ストップ"><svg viewBox="0 0 32 32" id="go-icon"></svg></button><span class="kl" id="go-txt">START</span></div>
+      <div class="kwrap"><div class="kn" id="k-vol" role="slider" aria-label="音量"><i></i></div><span class="kl">VOLUME <span id="vol-l"></span></span></div>
     </div>
-    <div class="ynav" id="ynav">
-      <button data-p="tap"><svg viewBox="0 0 24 24"><path d="M22 14a8 8 0 0 1-8 8"/><path d="M18 11v-1a2 2 0 0 0-4 0"/><path d="M14 10V9a2 2 0 0 0-4 0v1"/><path d="M10 9.5V4a2 2 0 0 0-4 0v10"/><path d="M18 11a2 2 0 1 1 4 0v3a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-6-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"/></svg>タップテンポ</button>
-      <button data-p="beat" class="sel"><span class="sigicon" id="sig-icon">4/4</span>ビート</button>
-      <button data-p="sound"><svg viewBox="0 0 24 24"><path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M2 14h4M10 8h4M18 16h4"/></svg>ミキサー</button>
-      <button data-p="trainer"><svg viewBox="0 0 24 24"><path d="M22 7 13.5 15.5 8.5 10.5 2 17"/><path d="M16 7h6v6"/></svg>テンポアップ</button>
+    <div class="echips" id="ynav">
+      <button data-p="tap">TAP</button>
+      <button data-p="beat" class="sel">SIG</button>
+      <button data-p="rhythm">DIV</button>
+      <button data-p="sound">SND</button>
+      <button data-p="trainer">TEMPO UP</button>
     </div>
     <div class="ypanel" data-p="tap">
       <button class="ytap" id="tap">TAP</button>
       <p class="note-small" style="text-align:center">曲に合わせて 2 回以上タップすると、テンポを設定します</p>
     </div>
-    <div class="ypanel sel" data-p="beat">
-      <div class="beats" id="beats"></div>
-      <div class="tiles" id="sigs"></div>
-    </div>
+    <div class="ypanel sel" data-p="beat"><div class="tiles" id="sigs"></div></div>
+    <div class="ypanel" data-p="rhythm"><div class="tiles wide" id="subs"></div></div>
     <div class="ypanel" data-p="sound">
       <div class="tiles wide" id="sounds"></div>
       <div class="card">
         <div class="field"><label>音の高さ <b id="m-pitch-l"></b></label><input type="range" id="m-pitch" min="-12" max="24" step="1"></div>
-        <div class="field"><label>音量 <b id="m-vol-l"></b></label><input type="range" id="m-vol" min="0" max="1" step="0.01"></div>
       </div>
     </div>
     <div class="ypanel" data-p="trainer">
@@ -475,7 +440,7 @@ html:not(.ready) .app,html:not(.ready) .tabbar,html:not(.ready) .embed{visibilit
         <div class="field"><label>目標テンポ <b id="tr-max-l"></b></label><input type="range" id="tr-max" min="40" max="300" step="1"></div>
       </div>
     </div>
-    <p class="note-small">外側のリングを回すとテンポを変更できます。テンポの数字をタップすると小数点まで直接入力できます。‹ › でリズムを切り替え、拍のバーをタップするとアクセント（強・中・弱・無音）を変えられます。</p>
+    <p class="note-small">TEMPO つまみを回す（または上下にドラッグ）とテンポが変わります。数字をタップすると小数点まで入力できます。パッドをタップすると アクセント（強・中・弱・無音）を切り替えます。</p>
   </section>
 
   <!-- SETTINGS -->
@@ -511,15 +476,15 @@ html:not(.ready) .app,html:not(.ready) .tabbar,html:not(.ready) .embed{visibilit
     <li><button data-tab="just"><svg viewBox="0 0 24 24"><path d="M8 2v7a4 4 0 0 0 8 0V2"/><path d="M12 13v9"/><path d="M9 22h6"/></svg>純正律</button></li>
   </ul>
 </nav>
-<div class="embed" data-page="chords"><iframe data-src="chords/index.html?v=20261118015656" title="Chord Wheel"></iframe></div>
-<div class="embed" data-page="just"><iframe data-src="just/index.html?v=20261118015656" title="コード名検索 × 純正律"></iframe></div>
+<div class="embed" data-page="chords"><iframe data-src="chords/index.html?v=20261118021219" title="Chord Wheel"></iframe></div>
+<div class="embed" data-page="just"><iframe data-src="just/index.html?v=20261118021219" title="コード名検索 × 純正律"></iframe></div>
 <div class="toast" id="toast"></div>
 
 <script>
 (() => {
 'use strict';
 // Bumped by tools/bump-version.sh on every release; must match version.json.
-const APP_VERSION = '20261118015656';
+const APP_VERSION = '20261118021219';
 // GitHub Pages lets browsers reuse files for 10 minutes and home-screen apps keep them longer,
 // so ask for version.json uncached and, if a newer release is out, reopen under a fresh URL.
 async function checkForUpdate() {
@@ -1082,86 +1047,95 @@ function startMetro() {
 }
 function stopMetro() {
   M.playing = false; clearInterval(M.timer); M.queue = [];
-  $$('.beat').forEach(b => b.classList.remove('cur'));
+  $$('.pad').forEach(b => b.classList.remove('cur'));
   keepAwake(false); refreshMetroState();
 }
 function toggleMetro() { M.playing ? stopMetro() : startMetro(); }
 function refreshMetroState() {
   $('#go-txt').textContent = M.playing ? 'STOP' : 'START';
-  $('#mdisc').classList.toggle('on', M.playing);
+  $('#go').classList.toggle('on', M.playing);
+  $('#go-icon').innerHTML = M.playing ? '<rect x="8" y="8" width="16" height="16" rx="3" fill="#000"/>' : '<path d="M10 6 L26 16 L10 26Z" fill="#fff"/>';
   $('#mini-metro').classList.toggle('on', M.playing);
   $('#mini-icon').innerHTML = M.playing ? '<rect x="2" y="2" width="8" height="8" rx="1" fill="#fff"/>' : '<path d="M2 1l9 5-9 5z" fill="#fff"/>';
 }
-function renderRhythm() {
-  const r = SUBS[S.sub];
-  $('#rh-name').innerHTML = `<span>${r.n}</span><small>${r.d}</small>`;
+function renderRhythm() { $('#rh-name').textContent = SUBS[S.sub].n; }
+function renderSound() { $('#snd-name').textContent = SOUNDS.find(x => x[0] === S.sound)[2]; }
+function tempoName(b) {
+  return b < 40 ? 'GRAVE' : b < 60 ? 'LARGO' : b < 66 ? 'LARGHETTO' : b < 76 ? 'ADAGIO' : b < 108 ? 'ANDANTE'
+    : b < 120 ? 'MODERATO' : b < 156 ? 'ALLEGRO' : b < 176 ? 'VIVACE' : b < 200 ? 'PRESTO' : 'PRESTISSIMO';
 }
-function placeTempoLabel() {
-  try {
-    const w = $('#t-num').getComputedTextLength(), lw = $('#t-lbl').getComputedTextLength();
-    if (w) $('#t-lbl').setAttribute('x', 221 + w / 2 - lw - 4);
-  } catch (e) {}
-}
-if (document.fonts) document.fonts.ready.then(placeTempoLabel);
 function setBpm(v) {
   S.bpm = Math.round(Math.max(30, Math.min(300, v)) * 100) / 100;
   const [i, d] = S.bpm.toFixed(2).split('.');
   $('#t-int').textContent = i; $('#t-dec').textContent = '.' + d;
-  placeTempoLabel();
+  $('#tname').textContent = tempoName(S.bpm);
   $('#mini-bpm').textContent = Number.isInteger(S.bpm) ? S.bpm : S.bpm.toFixed(2);
   save();
 }
+// one pad per beat: red dots show the accent (3 strong … 0 muted); tap a pad to cycle it
 function renderBeats() {
   const el = $('#beats'); el.innerHTML = '';
   S.accents.forEach((lv, i) => {
-    const b = document.createElement('button'); b.className = 'beat'; b.dataset.i = i;
-    b.innerHTML = `<em class="n">${i + 1}</em>` + [1, 2, 3].map(k => `<i class="${lv >= k ? 'f' : ''}"></i>`).join('');
+    const b = document.createElement('button');
+    b.className = 'pad' + (lv === 0 ? ' mute' : ''); b.dataset.i = i; b.dataset.lv = lv;
+    b.setAttribute('aria-label', `${i + 1}拍目`);
+    b.innerHTML = `<span class="lv">${'<i></i>'.repeat(Math.max(0, lv - 1))}</span><span class="n">${i + 1}</span>`;
     b.onclick = () => { S.accents[i] = (S.accents[i] + 3) % 4; renderBeats(); save(); };
     el.appendChild(b);
   });
-  $('#sig').textContent = $('#sig-icon').textContent = `${S.beats}/${S.unit}`;
+  $('#sig').textContent = `${S.beats}/${S.unit}`;
 }
 function metroFrame() {
   if (!M.playing || !ctx) return;
   const now = ctx.currentTime;
   while (M.queue.length && M.queue[0].t <= now) {
     const q = M.queue.shift();
-    $$('.beat').forEach(b => b.classList.toggle('cur', +b.dataset.i === q.beat));
-    const lamp = $('#lamp'), mini = $('#mini-metro');
-    const dial = $('#mdial');
-    lamp.classList.add('on'); lamp.classList.toggle('acc', q.acc); mini.classList.add('flash');
-    dial.classList.add('flash'); dial.classList.toggle('acc', q.acc);
+    $$('.pad').forEach(b => { const on = +b.dataset.i === q.beat; b.classList.toggle('cur', on); b.classList.toggle('a3', on && q.acc); });
+    const mini = $('#mini-metro');
+    mini.classList.add('flash');
     clearTimeout(metroFrame.t);
-    metroFrame.t = setTimeout(() => {
-      lamp.classList.remove('on', 'acc'); mini.classList.remove('flash'); dial.classList.remove('flash', 'acc');
-    }, Math.min(120, 30000 / S.bpm));
+    metroFrame.t = setTimeout(() => mini.classList.remove('flash'), Math.min(120, 30000 / S.bpm));
   }
 }
 
-// dial drag
-(() => {
-  // the lamp doubles as a jog knob that travels round the dial: 2° per bpm
-  const dial = $('#mdial'), knob = $('#lamp'); let last = null, acc = 0;
-  const placeKnob = () => {
-    const a = S.knob * Math.PI / 180;
-    knob.style.left = (50 + 41.5 * Math.cos(a)) + '%'; knob.style.top = (50 + 41.5 * Math.sin(a)) + '%';
+// knobs: start near the rim and turn it round, or start in the middle and drag up/down;
+// either way the callback gets the degrees turned
+function knob(el, onTurn) {
+  let last = null, lastY = 0, linear = false;
+  const geo = e => {
+    const r = el.getBoundingClientRect(), x = e.clientX - r.left - r.width / 2, y = e.clientY - r.top - r.height / 2;
+    return { a: Math.atan2(y, x) * 180 / Math.PI, dist: Math.hypot(x, y) / (r.width / 2) };
   };
-  placeKnob();
-  const angle = e => { const r = dial.getBoundingClientRect(); return Math.atan2(e.clientY - r.top - r.height / 2, e.clientX - r.left - r.width / 2) * 180 / Math.PI; };
-  dial.addEventListener('pointerdown', e => {
-    if (e.target.closest('.disc, .ymenu')) return;
-    last = angle(e); acc = 0; dial.setPointerCapture(e.pointerId); knob.style.cursor = 'grabbing';
+  el.addEventListener('pointerdown', e => {
+    const g = geo(e); last = g.a; lastY = e.clientY; linear = g.dist < 0.45;
+    el.setPointerCapture(e.pointerId); el.style.cursor = 'grabbing';
   });
-  dial.addEventListener('pointermove', e => {
+  el.addEventListener('pointermove', e => {
     if (last === null) return;
-    const a = angle(e); let d = a - last; if (d > 180) d -= 360; if (d < -180) d += 360;
-    last = a; acc += d / 2;
-    S.knob = (S.knob + d + 360) % 360; placeKnob();
+    let d;
+    if (linear) { d = (lastY - e.clientY) * 1.5; lastY = e.clientY; } // dragging up turns clockwise
+    else { const a = geo(e).a; d = a - last; if (d > 180) d -= 360; if (d < -180) d += 360; last = a; }
+    onTurn(d);
+  });
+  const end = () => { if (last !== null) save(); last = null; el.style.cursor = ''; };
+  el.addEventListener('pointerup', end); el.addEventListener('pointercancel', end);
+}
+(() => {
+  // TEMPO: an endless jog knob, 2° per bpm
+  const tk = $('#k-tempo'), vk = $('#k-vol'); let acc = 0;
+  const paint = () => {
+    tk.firstElementChild.style.transform = `rotate(${S.knob}deg)`;
+    vk.firstElementChild.style.transform = `rotate(${-135 + 270 * S.mVol}deg)`;
+    $('#vol-l').textContent = Math.round(S.mVol * 100);
+  };
+  paint();
+  knob(tk, d => {
+    S.knob = (S.knob + d + 360) % 360; acc += d / 2; paint();
     const step = Math.trunc(acc);
     if (step) { acc -= step; setBpm(Math.round(S.bpm) + step); }
   });
-  const end = () => { if (last !== null) save(); last = null; knob.style.cursor = ''; };
-  dial.addEventListener('pointerup', end); dial.addEventListener('pointercancel', end);
+  // VOLUME: −135°..+135° for 0..100 %
+  knob(vk, d => { S.mVol = Math.max(0, Math.min(1, S.mVol + d / 270)); paint(); });
 })();
 
 // ---------- builders ----------
@@ -1216,7 +1190,6 @@ function selectTab(name) {
   if (embed && !embed.src) embed.src = embed.dataset.src; // load each sub-app on first visit
   document.body.classList.toggle('embedded', !!embed);
   document.body.classList.toggle('ymode', name === 'metro');
-  document.querySelector('meta[name=theme-color]').content = name === 'metro' ? '#232323' : '#000000';
   const hl = $('#tab-hl'), blob = hl.firstElementChild;
   hl.style.transform = `translateX(${Math.max(idx, 0) * 100}%)`;
   hl.style.opacity = idx < 0 ? 0 : 1;
@@ -1243,7 +1216,7 @@ function init() {
     const v = parseFloat(prompt('テンポ（30〜300）', S.bpm));
     if (!isNaN(v)) setBpm(v);
   };
-  $$('.yb[data-d]').forEach(b => b.onclick = () => setBpm(Math.round(S.bpm) + +b.dataset.d));
+  $$('.es[data-d]').forEach(b => b.onclick = () => setBpm(Math.round(S.bpm) + +b.dataset.d));
   const taps = [];
   $('#tap').addEventListener('pointerdown', () => {
     const t = performance.now();
@@ -1254,9 +1227,14 @@ function init() {
       setBpm(Math.round(60000 / avg));
     }
   });
-  $$('#ynav button').forEach(b => b.onclick = () => {
-    $$('#ynav button').forEach(x => x.classList.toggle('sel', x === b));
-    $$('.ypanel').forEach(p => p.classList.toggle('sel', p.dataset.p === b.dataset.p));
+  // the SIG / DIV / SND readouts open the same panels as the chips below the knobs
+  const openPanel = name => {
+    $$('#ynav button').forEach(x => x.classList.toggle('sel', x.dataset.p === name));
+    $$('.ypanel').forEach(p => p.classList.toggle('sel', p.dataset.p === name));
+  };
+  $$('#ynav button, .emeta button').forEach(b => b.onclick = () => {
+    openPanel(b.dataset.p);
+    if (b.closest('.emeta')) $('#ynav').scrollIntoView({ behavior: 'smooth', block: 'start' });
   });
   chips($('#sigs'), SIGS.map(([b, u]) => [`${b}/${u}`, `${b}/${u}`]), v => v === `${S.beats}/${S.unit}`, v => {
     const [b, u] = v.split('/').map(Number);
@@ -1264,19 +1242,17 @@ function init() {
     if (M.beat >= b) M.beat = 0;
     renderBeats();
   }, 'tile');
-  const stepRhythm = d => { S.sub = (S.sub + d + SUBS.length) % SUBS.length; M.sub = 0; save(); renderRhythm(); };
-  $('#rh-prev').onclick = () => stepRhythm(-1);
-  $('#rh-next').onclick = () => stepRhythm(1);
+  chips($('#subs'), SUBS.map((s, i) => [i, s.n, s.d]), v => v === S.sub, v => { S.sub = v; M.sub = 0; renderRhythm(); }, 'tile');
   renderRhythm();
   chips($('#sounds'), SOUNDS.map(([k, ja, en]) => [k, en, ja]), v => v === S.sound, v => {
-    S.sound = v;
+    S.sound = v; renderSound();
     if (!M.playing) { ac(); playClick(ctx.currentTime + 0.02, 3); } // preview
   }, 'tile');
   rangeBind('m-pitch', 'mPitch', v => (v > 0 ? '+' : '') + v + ' 半音（' + Math.round(1000 * Math.pow(2, v / 12)) + ' Hz）', () => {
     clearTimeout(rangeBind.pt);
     rangeBind.pt = setTimeout(() => { if (!M.playing) { ac(); playClick(ctx.currentTime + 0.02, 1); } }, 120);
   });
-  rangeBind('m-vol', 'mVol', v => Math.round(v * 100) + '%');
+  renderSound();
   $('#tr-on').checked = S.trOn; $('#tr-on').onchange = e => { S.trOn = e.target.checked; M.bar = 0; save(); };
   rangeBind('tr-bars', 'trBars', v => v + ' 小節');
   rangeBind('tr-inc', 'trInc', v => '+' + v + ' bpm');
