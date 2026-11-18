@@ -82,6 +82,15 @@ h2{font-size:12px;font-weight:600;color:var(--label-3);margin:4px 2px -4px;lette
 .start-overlay{position:absolute;inset:0;display:grid;place-items:center}
 .start-btn{background:var(--te-green);color:#04200c;font-weight:800;padding:14px 24px;border-radius:999px;font-size:15px;box-shadow:0 8px 30px #3bd45a55}
 .start-btn:active{transform:scale(.95)}
+.ens{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:-4px}
+.ens label{display:flex;align-items:center;gap:10px;font-size:14px;font-weight:600;color:var(--label-2);cursor:pointer}
+.ens.on label{color:var(--te-green)}
+.ens select{-webkit-appearance:none;appearance:none;border:0;border-radius:999px;background:var(--surface-2);color:var(--label);font:inherit;font-size:13px;font-weight:600;
+  padding:8px 32px 8px 14px;background-image:linear-gradient(45deg,transparent 50%,var(--label-3) 50%),linear-gradient(135deg,var(--label-3) 50%,transparent 50%);
+  background-position:calc(100% - 17px) 52%,calc(100% - 12px) 52%;background-size:5px 5px;background-repeat:no-repeat;transition:opacity .2s}
+.ens:not(.on) select{opacity:.45}
+.ens-hint{font-size:11px;color:var(--label-3);margin:-8px 2px 0;display:none}
+.ens.on+.ens-hint{display:block}
 .level{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--label-3);margin:0 8px}
 .level span:last-child{min-width:44px;text-align:right;font-variant-numeric:tabular-nums}
 .lbar{flex:1;height:4px;border-radius:2px;background:var(--surface-2);position:relative;overflow:hidden}
@@ -331,6 +340,11 @@ html:not(.ready) .app,html:not(.ready) .tabbar,html:not(.ready) .embed{visibilit
       <div class="bar"><div class="fill" id="score-fill"></div><div class="pct" id="score-pct">—</div></div>
       <span style="text-align:right">±<b id="tol-label">5</b> cents</span>
     </div>
+    <div class="ens" id="ens">
+      <label><span class="tog"><input type="checkbox" id="ens-on"><span></span></span>合奏モード</label>
+      <select id="ens-target" aria-label="合わせる音"></select>
+    </div>
+    <p class="ens-hint">選んだ音・近くの大きな音だけに反応します。スマホを自分の楽器のすぐ近くに置いてください。</p>
     <div class="dial-wrap">
       <svg viewBox="0 0 320 320" id="tsvg">
         <defs>
@@ -497,15 +511,15 @@ html:not(.ready) .app,html:not(.ready) .tabbar,html:not(.ready) .embed{visibilit
     <li><button data-tab="just"><svg viewBox="0 0 24 24"><path d="M8 2v7a4 4 0 0 0 8 0V2"/><path d="M12 13v9"/><path d="M9 22h6"/></svg>純正律</button></li>
   </ul>
 </nav>
-<div class="embed" data-page="chords"><iframe data-src="chords/index.html?v=20261028114935" title="Chord Wheel"></iframe></div>
-<div class="embed" data-page="just"><iframe data-src="just/index.html?v=20261028114935" title="コード名検索 × 純正律"></iframe></div>
+<div class="embed" data-page="chords"><iframe data-src="chords/index.html?v=20261118015656" title="Chord Wheel"></iframe></div>
+<div class="embed" data-page="just"><iframe data-src="just/index.html?v=20261118015656" title="コード名検索 × 純正律"></iframe></div>
 <div class="toast" id="toast"></div>
 
 <script>
 (() => {
 'use strict';
 // Bumped by tools/bump-version.sh on every release; must match version.json.
-const APP_VERSION = '20261028114935';
+const APP_VERSION = '20261118015656';
 // GitHub Pages lets browsers reuse files for 10 minutes and home-screen apps keep them longer,
 // so ask for version.json uncached and, if a newer release is out, reopen under a fresh URL.
 async function checkForUpdate() {
@@ -534,7 +548,7 @@ const $$ = (s, r = document) => [...r.querySelectorAll(s)];
 // ---------- settings ----------
 const DEFAULTS = {
   a4: 440, temperament: 'equal', key: 0, transpose: 0, naming: 'en', tolerance: 5, sens: 5,
-  bpm: 100, beats: 4, unit: 4, sub: 0, sound: 'pulse', mVol: 0.8, mPitch: 0, knob: 45, accents: [3, 1, 1, 1],
+  bpm: 100, beats: 4, unit: 4, sub: 0, sound: 'pulse', mVol: 0.8, mPitch: 0, knob: 45, ens: false, ensTarget: -1, accents: [3, 1, 1, 1],
   trOn: false, trBars: 4, trInc: 2, trMax: 160,
   dNote: 9, dOct: 4, dWave: 'sine', dVol: 0.5, dFifth: false,
 };
@@ -594,9 +608,9 @@ function toast(msg, ms = 2200) {
 
 // ---------- pitch detection (YIN) ----------
 const tuner = { on: false, level: 0, analyser: null, buf: null, yin: null, hist: [], freqs: [], lastValid: 0,
-  cents: 0, note: null, susNote: null, susTime: 0, inTime: 0, lastT: 0, wheelAngle: 0 };
+  cents: 0, note: null, susNote: null, susTime: 0, inTime: 0, lastT: 0, wheelAngle: 0, floor: 0, lock: null, lvHist: [] };
 
-function detectPitch(b, sr) {
+function detectPitch(b, sr, clarity = 0.15) {
   const N = b.length;
   let rms = 0;
   for (let i = 0; i < N; i++) rms += b[i] * b[i];
@@ -618,7 +632,7 @@ function detectPitch(b, sr) {
   }
   let tau = -1;
   for (let t = tauMin; t <= tauMax; t++) {
-    if (d[t] < 0.15) { while (t + 1 <= tauMax && d[t + 1] < d[t]) t++; tau = t; break; }
+    if (d[t] < clarity) { while (t + 1 <= tauMax && d[t + 1] < d[t]) t++; tau = t; break; }
   }
   if (tau < 0) return -1;
   // refine the lag on the raw difference function (as in the YIN paper): interpolating the normalised
@@ -633,6 +647,32 @@ function detectPitch(b, sr) {
 
 // sens 1..10 → threshold ≈ 0.024 .. 0.0004 (5 ≈ 0.004)
 function minRms() { return 0.0004 * Math.pow(1.57, 10 - S.sens); }
+
+// 合奏モード: in a room full of players, only trust a clean, steady pitch that is clearly louder than the
+// room (the player's own instrument, nearest the mic) and, if a target note is chosen, is that note.
+const ENS_MARGIN = 3.2; // ≈ +10 dB over the room
+function ensThreshold() { return Math.max(minRms(), tuner.floor * ENS_MARGIN); }
+// room level = the quieter end (10th percentile) of the last ~4 s: other players sound continuously,
+// while the player's own playing has breaths and gaps. Not learnt while a note is locked, so a long
+// tone never raises the bar against the player holding it.
+function updateRoomLevel() {
+  const h = tuner.lvHist;
+  h.push(tuner.level); if (h.length > 240) h.shift();
+  const sorted = [...h].sort((x, y) => x - y);
+  tuner.floor = sorted[Math.floor(sorted.length * 0.1)];
+}
+// once a note is caught, keep following it while the same note continues (down to −12 dB of its peak)
+function ensembleAccepts(f, now) {
+  const L = tuner.lock, n = analyze(f).n;
+  if (L && n === L.n && tuner.level > L.peak * 0.25) {
+    L.peak = Math.max(L.peak * 0.995, tuner.level); L.t = now;
+    return true;
+  }
+  if (tuner.level < ensThreshold()) return false;
+  if (S.ensTarget >= 0 && mod12(n + S.transpose) !== S.ensTarget) return false;
+  tuner.lock = { n, peak: tuner.level, t: now };
+  return true;
+}
 
 function analyze(f) {
   const m = 69 + 12 * Math.log2(f / S.a4);
@@ -803,17 +843,34 @@ function faceColor(c) {
 }
 const stateColor = c => Math.abs(c) <= S.tolerance ? '#3bd45a' : Math.abs(c) < 20 ? '#ffad33' : '#ff5a5f';
 
+// turn the note wheel so pitch class pc sits under the marker, taking the short way round B→C
+function turnWheelTo(pc) {
+  if (tuner.wheelPc === pc) return;
+  let target = -pc * 30;
+  target += Math.round((tuner.wheelAngle - target) / 360) * 360;
+  tuner.wheelAngle = target; tuner.wheelPc = pc;
+  $('#wheel').style.transform = `rotate(${target}deg)`;
+  fadeWheel();
+}
+
 function tunerFrame(now) {
   if (!tuner.on) return;
   const dt = tuner.lastT ? Math.min(0.1, (now - tuner.lastT) / 1000) : 0;
   tuner.lastT = now;
   tuner.analyser.getFloatTimeDomainData(tuner.buf);
-  const f = detectPitch(tuner.buf, ctx.sampleRate);
+  let f = detectPitch(tuner.buf, ctx.sampleRate, S.ens ? 0.1 : 0.15);
+  if (S.ens) {
+    const ok = f > 0 && f <= 4200 && ensembleAccepts(f, now);
+    if (!ok) f = -1;
+    if (tuner.lock && now - tuner.lock.t > 300) tuner.lock = null; // the note has ended
+    if (!tuner.lock) updateRoomLevel();
+  }
   const pos = r => Math.max(0, Math.min(100, (20 * Math.log10(r + 1e-9) + 70) / 70 * 100));
   const lv = pos(tuner.level);
   $('#lfill').style.width = lv + '%';
-  $('#lfill').style.background = tuner.level >= minRms() ? 'var(--te-green)' : '#4aa3ff';
-  $('#lth').style.left = pos(minRms()) + '%';
+  const gate = S.ens ? ensThreshold() : minRms();
+  $('#lfill').style.background = tuner.level >= gate ? 'var(--te-green)' : '#4aa3ff';
+  $('#lth').style.left = pos(gate) + '%';
   $('#ldb').textContent = Math.round(20 * Math.log10(tuner.level + 1e-9)) + ' dB';
   $('#lvl-l').setAttribute('stroke-dasharray', `${lv} 100`); $('#lvl-r').setAttribute('stroke-dasharray', `${lv} 100`);
   const silent = f <= 0 || f > 4200;
@@ -824,8 +881,10 @@ function tunerFrame(now) {
     tuner.freqs = [];
   }
   const labels = $$('.wl');
-  if (tuner.freqs.length >= 2) {
-    const sorted = [...tuner.freqs].sort((a, b) => a - b);
+  const sorted = [...tuner.freqs].sort((a, b) => a - b);
+  // ensemble mode also wants a few frames that agree within ~40 cents before showing anything
+  const steady = !S.ens || (sorted.length >= 3 && sorted[sorted.length - 1] / sorted[0] < 1.024);
+  if (sorted.length >= 2 && steady) {
     const fm = sorted[sorted.length >> 1];
     const r = analyze(fm);
     if (tuner.note !== r.n) tuner.cents = r.c; else tuner.cents = tuner.cents * 0.55 + r.c * 0.45;
@@ -849,11 +908,7 @@ function tunerFrame(now) {
     $('#needle-r').setAttribute('fill', col);
     $('#marker').setAttribute('fill', col);
     // wheel: take the short way round when crossing B→C
-    let target = -pc * 30;
-    target += Math.round((tuner.wheelAngle - target) / 360) * 360;
-    tuner.wheelAngle = target;
-    $('#wheel').style.transform = `rotate(${target}deg)`;
-    if (tuner.wheelPc !== pc) { tuner.wheelPc = pc; fadeWheel(); }
+    turnWheelTo(pc);
     labels.forEach(s => s.classList.toggle('on', +s.dataset.i === pc));
     // sustain score
     if (tuner.susNote !== r.n) { tuner.susNote = r.n; tuner.susTime = 0; tuner.inTime = 0; }
@@ -868,6 +923,7 @@ function tunerFrame(now) {
     $('#needle-g').style.opacity = 0;
     $('#marker').setAttribute('fill', '#4d4d55');
     labels.forEach(s => s.classList.remove('on'));
+    if (S.ens && S.ensTarget >= 0) turnWheelTo(S.ensTarget); // show which note we are waiting for
     if (now - tuner.lastValid > 1500) tuner.susNote = null;
     tuner.hist.push(null);
   }
@@ -1135,8 +1191,17 @@ function refreshHeader() {
   $('#temp-info').textContent = tn + (S.temperament === 'equal' ? '' : ` (${NAMES[S.naming][S.key]})`);
   $('#tol-label').textContent = S.tolerance;
 }
+function renderEnsemble() {
+  const sel = $('#ens-target');
+  sel.innerHTML = '<option value="-1">どの音でも</option>' +
+    NAMES[S.naming].map((n, i) => `<option value="${i}">${n} を合わせる</option>`).join('');
+  sel.value = String(S.ensTarget);
+  $('#ens-on').checked = S.ens;
+  $('#ens').classList.toggle('on', S.ens);
+}
 function buildNameDependent() {
   buildWheel();
+  renderEnsemble();
   chips($('#d-notes'), NAMES[S.naming].map((n, i) => [i, n]), v => v === S.dNote, v => { S.dNote = v; refreshDrone(); });
   chips($('#keys'), NAMES[S.naming].map((n, i) => [i, n]), v => v === S.key, v => { S.key = v; refreshAll(); });
   refreshHeader(); refreshDrone();
@@ -1227,6 +1292,11 @@ function init() {
   chips($('#naming'), [['en', 'C D E'], ['ja', 'ド レ ミ'], ['de', 'C D E (独)']], v => v === S.naming, v => { S.naming = v; buildNameDependent(); });
   rangeBind('tol', 'tolerance', v => '±' + v + ' cents', () => { refreshHeader(); updateTol(); });
   rangeBind('sens', 'sens', v => v + ' / 10');
+  $('#ens-on').onchange = e => { S.ens = e.target.checked; tuner.floor = 0; tuner.lvHist = []; tuner.lock = null; tuner.freqs = []; save(); renderEnsemble(); };
+  $('#ens-target').onchange = e => {
+    S.ensTarget = +e.target.value; tuner.lock = null; tuner.freqs = []; save();
+    if (S.ensTarget >= 0 && !S.ens) { S.ens = true; tuner.floor = 0; tuner.lvHist = []; renderEnsemble(); } // picking a note implies the mode
+  };
   buildTicks();
   buildNameDependent();
   // tabs
